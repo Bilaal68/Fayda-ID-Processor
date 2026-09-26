@@ -20,10 +20,22 @@ export async function processPdfTemplate(pdfFiles) {
     formData.append(`pdf_${index + 1}`, file);
   });
 
-  const response = await fetch(`${API_BASE_URL}/process-pdf-template`, {
-    method: 'POST',
-    body: formData,
-  });
+  console.log(`[AutoPress] Submitting ${pdfFiles.length} file(s) to: ${API_BASE_URL}/process-pdf-template`);
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/process-pdf-template`, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (netErr) {
+    console.error('[AutoPress] Network/Fetch Error:', netErr);
+    throw new Error(
+      `Failed to connect to ${API_BASE_URL}. ` +
+      `Please check: (1) Did you restart the Vite dev server ("npm run dev") after updating .env? ` +
+      `(2) In your browser, open DevTools (F12) -> Console/Network to view the specific CORS/network error.`
+    );
+  }
 
   if (!response.ok) {
     let errorMessage = `Server returned status ${response.status}`;

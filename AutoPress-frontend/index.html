@@ -608,7 +608,7 @@
 
       <div class="status-badge">
         <div class="status-dot"></div>
-        <span>Backend API Target: <strong>http://localhost:5000</strong></span>
+        <span>System Online</span>
       </div>
     </div>
   </header>
@@ -637,62 +637,15 @@
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          Template PDF Pipeline
+          Automated Print Pipeline
         </div>
-        <h1>Fayda ID Print Card Generator</h1>
+        <h1>Fayda ID Print Sheet Generator</h1>
         <p>
-          Upload up to 5 Fayda ID PDFs. Our backend extracts citizen details, photos, and QR codes via Gemini AI, arranging them into standardized, print-ready card layouts.
+          Upload up to 5 Fayda ID PDFs to automatically extract citizen details, photos, and QR codes into standardized 300 DPI print-ready sheets.
         </p>
       </div>
 
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
-            </svg>
-          </div>
-          <div>
-            <div class="feature-title">1 to 5 Multi-Card Batch</div>
-            <div class="feature-desc">Process single or multiple cards per run</div>
-          </div>
-        </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-              <rect x="9" y="9" width="6" height="6"></rect>
-              <line x1="9" y1="1" x2="9" y2="4"></line>
-              <line x1="15" y1="1" x2="15" y2="4"></line>
-              <line x1="9" y1="20" x2="9" y2="23"></line>
-              <line x1="15" y1="20" x2="15" y2="23"></line>
-              <line x1="20" y1="9" x2="23" y2="9"></line>
-              <line x1="20" y1="14" x2="23" y2="14"></line>
-              <line x1="1" y1="9" x2="4" y2="9"></line>
-              <line x1="1" y1="14" x2="4" y2="14"></line>
-            </svg>
-          </div>
-          <div>
-            <div class="feature-title">AI Data Extraction</div>
-            <div class="feature-desc">Gemini-powered text & barcode parsing</div>
-          </div>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </div>
-          <div>
-            <div class="feature-title">Print-Ready Output</div>
-            <div class="feature-desc">Standard card sizing & high DPI layout</div>
-          </div>
-        </div>
-      </div>
 
       <div class="uploader-card">
         <!-- Hidden file input -->
@@ -748,8 +701,8 @@
             </svg>
           </div>
           <div>
-            <div class="preview-title">Generated Print Ready PDF</div>
-            <div id="previewFilename" class="preview-subtitle">fayda_id_cards.pdf</div>
+            <div class="preview-title">Generated Print Ready PNG (300 DPI)</div>
+            <div id="previewFilename" class="preview-subtitle">fayda_id_cards.png</div>
           </div>
         </div>
 
@@ -768,7 +721,7 @@
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
-            Open Tab
+            Open Image
           </button>
 
           <button class="btn-primary" onclick="downloadGeneratedPdf()">
@@ -777,13 +730,13 @@
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Download PDF
+            Download High-Res PNG
           </button>
         </div>
       </div>
 
-      <div class="iframe-container">
-        <iframe id="pdfFrame" src="" title="Generated Fayda Cards PDF"></iframe>
+      <div class="iframe-container" style="display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 20px; background: #020617;">
+        <img id="previewImg" src="" alt="Generated Fayda Cards PNG Sheet" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
       </div>
     </div>
   </main>
@@ -793,11 +746,11 @@
   </footer>
 
   <script>
-    const API_BASE_URL = 'http://localhost:5000';
+    const API_BASE_URL = 'https://api-autopress.familyacadamyschool.com';
     let uploadedFiles = [];
     let currentBlobUrl = null;
     let currentBlob = null;
-    let currentFilename = 'fayda_id_cards.pdf';
+    let currentFilename = 'fayda_id_cards.png';
     let isProcessing = false;
 
     function formatFileSize(bytes) {
@@ -873,12 +826,17 @@
     function removeFile(index) {
       if (isProcessing) return;
       uploadedFiles.splice(index, 1);
+      const fileInput = document.getElementById('pdfFileInput');
+      if (fileInput) fileInput.value = '';
       renderSlots();
     }
 
     function clearAllFiles() {
       if (isProcessing) return;
       uploadedFiles = [];
+      const fileInput = document.getElementById('pdfFileInput');
+      if (fileInput) fileInput.value = '';
+      dismissError();
       renderSlots();
     }
 
@@ -904,7 +862,7 @@
 
       if (uploadedFiles.length > 0) {
         generateBtn.disabled = false;
-        generateBtnText.textContent = `Generate Print PDF (${uploadedFiles.length} ID Card${uploadedFiles.length > 1 ? 's' : ''})`;
+        generateBtnText.textContent = `Generate Print PNG (${uploadedFiles.length} ID Card${uploadedFiles.length > 1 ? 's' : ''})`;
       } else {
         generateBtn.disabled = true;
         generateBtnText.textContent = 'Select at least 1 PDF to Generate';
@@ -964,11 +922,10 @@
       isProcessing = true;
       dismissError();
       const generateBtn = document.getElementById('generateBtn');
-      const generateBtnText = document.getElementById('generateBtnText');
       generateBtn.disabled = true;
       generateBtn.innerHTML = `
         <div class="spinner"></div>
-        <span>Processing ${uploadedFiles.length} Card${uploadedFiles.length > 1 ? 's' : ''} with Gemini & Generating Layout...</span>
+        <span>Processing ${uploadedFiles.length} Card${uploadedFiles.length > 1 ? 's' : ''} & Generating 300 DPI PNG Sheet...</span>
       `;
 
       try {
@@ -977,6 +934,7 @@
           formData.append(`pdf_${index + 1}`, file);
         });
 
+        console.log(`[AutoPress] Submitting to: ${API_BASE_URL}/process-pdf-template`);
         const response = await fetch(`${API_BASE_URL}/process-pdf-template`, {
           method: 'POST',
           body: formData,
@@ -1006,7 +964,7 @@
             currentFilename = match[1].replace(/['"]/g, '');
           }
         } else {
-          currentFilename = 'fayda_id_cards.pdf';
+          currentFilename = 'fayda_id_cards.png';
         }
 
         // Switch to preview mode
@@ -1014,10 +972,11 @@
         const previewSection = document.getElementById('previewSection');
         previewSection.style.display = 'flex';
         document.getElementById('previewFilename').textContent = currentFilename;
-        document.getElementById('pdfFrame').src = `${currentBlobUrl}#toolbar=1&navpanes=0`;
+        document.getElementById('previewImg').src = currentBlobUrl;
 
       } catch (err) {
-        showError(err.message || 'Failed to process PDFs.');
+        console.error('[AutoPress] Error:', err);
+        showError(`Failed to fetch from ${API_BASE_URL}: ${err.message || 'Network error'}. Check browser console (F12) for details.`);
         generateBtn.disabled = false;
         renderSlots();
       } finally {
@@ -1026,9 +985,10 @@
     }
 
     function resetToUpload() {
-      document.getElementById('previewSection').style.display = 'none';
-      document.getElementById('uploaderSection').style.display = 'block';
-      renderSlots();
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+      }
+      window.location.reload();
     }
 
     function openPdfInNewTab() {
@@ -1039,7 +999,7 @@
       if (!currentBlobUrl) return;
       const a = document.createElement('a');
       a.href = currentBlobUrl;
-      a.download = currentFilename || 'fayda_id_cards.pdf';
+      a.download = currentFilename || 'fayda_id_cards.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
