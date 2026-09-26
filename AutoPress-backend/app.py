@@ -42,25 +42,16 @@ app.register_blueprint(fayda_bp)
 # ============================================================
 @app.after_request
 def add_cors_headers(response):
-    allowed_origins = [
-        "https://auto-press-printer-shop-automation.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:5000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5000",
-        "null",
-    ]
     try:
         from flask import request as flask_request
         request_origin = flask_request.headers.get('Origin', '')
     except Exception:
         request_origin = ''
 
-    if request_origin in allowed_origins:
-        response.headers['Access-Control-Allow-Origin']  = request_origin
+    if request_origin:
+        response.headers['Access-Control-Allow-Origin'] = request_origin
     else:
-        response.headers['Access-Control-Allow-Origin']  = "https://auto-press-printer-shop-automation.vercel.app"
+        response.headers['Access-Control-Allow-Origin'] = '*'
 
     response.headers['Access-Control-Allow-Headers']     = 'Content-Type, Authorization, X-Requested-With, Accept'
     response.headers['Access-Control-Allow-Methods']     = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
