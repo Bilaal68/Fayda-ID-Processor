@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from fb.admin import verify_token, db
 from services.gemini import extract_from_images, extract_from_pdf
-from services.pdf_generator import generate_final_pdf
+from services.pdf_generator import generate_final_pdf, generate_final_png
 from datetime import datetime, timezone
 import io
 import os
@@ -204,18 +204,18 @@ def generate_final_id():
         extracted.update(edited)
         card['extracted_texts'] = extracted
 
-    # Step 6 — Generate PDF
+    # Step 6 — Generate PNG
     try:
-        pdf_bytes = generate_final_pdf(cards_data, template_count)
+        png_bytes = generate_final_png(cards_data, template_count)
     except Exception as e:
-        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+        return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 
-    # Step 7 — Return PDF
+    # Step 7 — Return PNG
     return send_file(
-        io.BytesIO(pdf_bytes),
-        mimetype='application/pdf',
+        io.BytesIO(png_bytes),
+        mimetype='image/png',
         as_attachment=True,
-        download_name='fayda_id_cards.pdf'
+        download_name='fayda_id_cards.png'
     )
 
 # ============================================================
@@ -473,10 +473,10 @@ def process_queue():
     except Exception as e:
         print(f"⚠️ Failed to mark jobs as processing: {e}")
 
-    # Step 7 — Generate PDF
+    # Step 7 — Generate PNG
     try:
-        pdf_bytes = generate_final_pdf(all_cards, template_count)
-        print(f"✅ PDF generated successfully")
+        png_bytes = generate_final_png(all_cards, template_count)
+        print(f"✅ PNG generated successfully")
     except Exception as e:
         now = datetime.now(timezone.utc).isoformat()
         for job_id in all_job_ids:
@@ -485,8 +485,8 @@ def process_queue():
                 'error':      str(e),
                 'updated_at': now,
             })
-        print(f"❌ PDF generation failed: {e}")
-        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+        print(f"❌ PNG generation failed: {e}")
+        return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 
     # Step 8 — Mark all jobs as "completed"
     try:
@@ -501,12 +501,12 @@ def process_queue():
     except Exception as e:
         print(f"⚠️ Failed to mark jobs as completed: {e}")
 
-    # Step 9 — Return PDF
+    # Step 9 — Return PNG
     return send_file(
-        io.BytesIO(pdf_bytes),
-        mimetype='application/pdf',
+        io.BytesIO(png_bytes),
+        mimetype='image/png',
         as_attachment=True,
-        download_name='fayda_id_cards.pdf'
+        download_name='fayda_id_cards.png'
     )
 
 # ============================================================
@@ -597,23 +597,23 @@ def process_pdf_template():
     print(f"\n📦 Total cards extracted: {len(all_cards)}")
     print(f"🖼️  Using template: {template_count}-card-template.pdf")
 
-    # Step 6 — Generate PDF
+    # Step 6 — Generate PNG
     try:
-        pdf_bytes = generate_final_pdf(all_cards, template_count)
-        print(f"✅ PDF generated successfully")
+        png_bytes = generate_final_png(all_cards, template_count)
+        print(f"✅ PNG generated successfully")
     except Exception as e:
-        print(f"❌ PDF generation failed: {e}")
+        print(f"❌ PNG generation failed: {e}")
         print(traceback.format_exc())
         # Refund credits if generation fails
         refund_success, _ = deduct_credits(user_id, -credit_cost)
-        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+        return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 
-    # Step 7 — Return PDF
+    # Step 7 — Return PNG
     return send_file(
-        io.BytesIO(pdf_bytes),
-        mimetype='application/pdf',
+        io.BytesIO(png_bytes),
+        mimetype='image/png',
         as_attachment=True,
-        download_name='fayda_id_cards.pdf'
+        download_name='fayda_id_cards.png'
     )
 
 # ============================================================

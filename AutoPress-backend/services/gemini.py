@@ -1,3 +1,19 @@
+import socket
+
+# Force IPv4 preference globally to prevent [Errno 101] Network is unreachable
+# when running in containers or network environments without an active IPv6 route.
+_orig_getaddrinfo = socket.getaddrinfo
+
+def _ipv4_first_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if family == 0:
+        family = socket.AF_INET
+    try:
+        return _orig_getaddrinfo(host, port, family, type, proto, flags)
+    except Exception:
+        return _orig_getaddrinfo(host, port, 0, type, proto, flags)
+
+socket.getaddrinfo = _ipv4_first_getaddrinfo
+
 from google import genai
 from google.genai import types
 import os
@@ -7,59 +23,95 @@ import base64
 import io
 import re
 import itertools
+import ssl
+import httpx
 from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ============================================================
-# API KEY ROTATION
+# API KEY ROTATION & HEALTH TRACKING
 # ============================================================
-GEMINI_API_KEYS = [
-    os.getenv('GEMINI_API_KEY_1'),
-    os.getenv('GEMINI_API_KEY_2'),
-    os.getenv('GEMINI_API_KEY_3'),
-    os.getenv('GEMINI_API_KEY_4'),
-    os.getenv('GEMINI_API_KEY_5'),
-    os.getenv('GEMINI_API_KEY_6'),
-    os.getenv('GEMINI_API_KEY_7'),
-    os.getenv('GEMINI_API_KEY_8'),
-    os.getenv('GEMINI_API_KEY_9'),
-    os.getenv('GEMINI_API_KEY_10'),
-    os.getenv('GEMINI_API_KEY_11'),
-    os.getenv('GEMINI_API_KEY_12'),
-    os.getenv('GEMINI_API_KEY_13'),
-    os.getenv('GEMINI_API_KEY_14'),
-    os.getenv('GEMINI_API_KEY_15'),
-    os.getenv('GEMINI_API_KEY_16'),
-    os.getenv('GEMINI_API_KEY_17'),
-    os.getenv('GEMINI_API_KEY_18'),
-    os.getenv('GEMINI_API_KEY_19'),
-    os.getenv('GEMINI_API_KEY_20'),
-]
+RAW_KEYS = []
+for i in range(1, 31):
+    val = os.getenv(f'GEMINI_API_KEY_{i}')
+    if val and val.strip():
+        RAW_KEYS.append(val.strip())
 
-# ── Filter out None/empty keys ──
-GEMINI_API_KEYS = [k for k in GEMINI_API_KEYS if k]
+# Support both updated Google developer keys ('AQ...') and standard keys ('AIzaSy...')
+GEMINI_API_KEYS = []
+seen = set()
+for k in RAW_KEYS:
+    if k not in seen:
+        seen.add(k)
+        GEMINI_API_KEYS.append(k)
 
 if not GEMINI_API_KEYS:
     raise Exception("No Gemini API keys found in .env!")
 
-print(f"✅ Loaded {len(GEMINI_API_KEYS)} Gemini API keys")
+print(f"✅ Loaded {len(GEMINI_API_KEYS)} valid Gemini API keys")
 
-# ── Rotating key cycle ──
-_key_cycle = itertools.cycle(GEMINI_API_KEYS)
+# Runtime health tracking across requests
+BAD_KEYS = set()                  # Permanently invalid keys (401 / 403)
+KEY_COOLDOWNS = {}                # key -> cooldown end timestamp (429)
+_key_index = 0
 
 def get_next_key():
-    """Get next API key in rotation"""
-    return next(_key_cycle)
+    """
+    Selects the next healthy Gemini API key and its 1-based number.
+    Skips keys that have failed auth or are currently on cooldown.
+    """
+    global _key_index
+    now = time.time()
+    
+    # Healthy keys (not bad, cooldown passed)
+    healthy = [
+        (idx + 1, k)
+        for idx, k in enumerate(GEMINI_API_KEYS)
+        if k not in BAD_KEYS and KEY_COOLDOWNS.get(k, 0) <= now
+    ]
+
+    if not healthy:
+        # If all non-bad keys are on cooldown, pick the one with earliest cooldown expiry
+        available = [(idx + 1, k) for idx, k in enumerate(GEMINI_API_KEYS) if k not in BAD_KEYS]
+        if not available:
+            print("⚠️ All Gemini API keys failed auth; resetting blacklist as fallback")
+            BAD_KEYS.clear()
+            available = list(enumerate(GEMINI_API_KEYS, 1))
+
+        available.sort(key=lambda item: KEY_COOLDOWNS.get(item[1], 0))
+        best_num, best_key = available[0]
+        wait_time = max(0.0, KEY_COOLDOWNS.get(best_key, 0) - now)
+        if wait_time > 0:
+            print(f"⏳ All keys on cooldown. Waiting {min(wait_time, 3.0):.1f}s for key #{best_num}...")
+            time.sleep(min(wait_time, 3.0))
+        return best_key, best_num
+
+    _key_index = (_key_index + 1) % len(healthy)
+    key_num, selected_key = healthy[_key_index]
+    return selected_key, key_num
+
+def mark_key_bad(key, key_num, reason="Authentication failed"):
+    """Permanently disable an unauthenticated or invalid key for this process"""
+    BAD_KEYS.add(key)
+    remaining = len([k for k in GEMINI_API_KEYS if k not in BAD_KEYS])
+    print(f"🚫 Key #{key_num} marked as BAD ({reason}). Remaining active keys: {remaining}")
+
+def mark_key_cooldown(key, key_num, duration=60.0):
+    """Put a rate-limited key on temporary cooldown"""
+    KEY_COOLDOWNS[key] = time.time() + duration
+    print(f"⏳ Key #{key_num} placed on {duration}s cooldown (rate limit)")
 
 # ============================================================
-# MODELS (KEPT AS YOU HAVE THEM - NOT CHANGED)
+# MODELS (Active models with automatic rotation on limit/error)
 # ============================================================
 MODELS_TO_TRY = [
-    'gemini-3-flash-preview',
-    'gemini-3.1-flash-lite-preview',
-    'gemini-2.5-flash',
+    'gemini-3.6-flash',              # Primary active model recommended by Google
+    'gemini-3.1-flash-lite-preview', # Ultra-fast, high availability
+    'gemini-flash-lite-latest',      # Highly available flash-lite endpoint
+    'gemini-3-flash-preview',        # Reliable preview model
+    'gemini-3.8-flash',              # Next-gen fallback model
 ]
 
 # ============================================================
@@ -215,25 +267,49 @@ def crop_image(img, coords, img_width, img_height):
     print(f"✂️  Cropping: ({x1},{y1}) → ({x2},{y2})")
     return img.crop((x1, y1, x2, y2))
 
-def call_gemini_with_rotation(parts, system_instruction=None):
+def call_gemini_with_rotation(parts, system_instruction=None, max_total_seconds=75.0):
     """
-    Call Gemini with automatic API key rotation and network retry.
-    Handles rate limits (429), server errors (503), and temporary network/DNS blips.
+    Call Gemini with automatic model rotation, API key rotation, failover, and timeout control.
+    - Prevents hanging requests by enforcing a per-request socket timeout (20s) and overall operation deadline (75s).
+    - Automatically rotates to the next model if a model hits rate limit (429), quota, 404/deprecated, or 503/unavailable.
+    - Automatically rotates keys on quota exhaustion or auth failure (401/403).
+    - Automatically blacklists permanently bad keys so subsequent requests in the batch never waste time on them.
     """
+    start_time = time.time()
+    deadline = start_time + max_total_seconds
     last_error = None
-    num_keys = max(1, len(GEMINI_API_KEYS))
-    max_key_rotations = max(num_keys, 3)
-    max_network_retries = 3
 
-    for key_attempt in range(max_key_rotations):
-        api_key = get_next_key()
-        client = genai.Client(api_key=api_key)
-        key_num = (key_attempt % num_keys) + 1
+    active_keys_count = max(1, len([k for k in GEMINI_API_KEYS if k not in BAD_KEYS]))
+    max_key_attempts = min(active_keys_count * 2, 8)
+
+    for key_attempt in range(max_key_attempts):
+        if time.time() >= deadline:
+            break
+
+        api_key, key_num = get_next_key()
+        # Enforce strict 20s read/write and 10s connect timeout via httpx client
+        http_client = httpx.Client(
+            timeout=httpx.Timeout(20.0, connect=10.0, read=20.0, write=20.0, pool=10.0),
+            transport=httpx.HTTPTransport(retries=1)
+        )
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(httpx_client=http_client)
+        )
         print(f"🔑 Using key #{key_num}")
 
-        for net_retry in range(max_network_retries):
-            try:
-                for model_name in MODELS_TO_TRY:
+        key_auth_failed = False
+        key_quota_failed = False
+
+        try:
+            for model_name in MODELS_TO_TRY:
+                if time.time() >= deadline:
+                    break
+
+                for net_retry in range(2):
+                    if time.time() >= deadline:
+                        break
+
                     try:
                         content_parts = []
                         for part in parts:
@@ -268,48 +344,72 @@ def call_gemini_with_rotation(parts, system_instruction=None):
                         return response
 
                     except Exception as model_err:
+                        last_error = model_err
                         err_str = str(model_err).lower()
-                        if '503' in err_str or 'unavailable' in err_str:
-                            print(f"⚠️ {model_name} unavailable, trying next model...")
+
+                        # 1. Authentication failure (401 / 403 / Access token unsupported)
+                        if any(x in err_str for x in [
+                            '401', '403', 'unauthenticated', 'access_token_type_unsupported',
+                            'invalid authentication', 'invalid api key', 'api key not valid', 'permission_denied'
+                        ]):
+                            mark_key_bad(api_key, key_num, str(model_err)[:100])
+                            key_auth_failed = True
+                            break
+
+                        # 2. Rate limit / Quota / 429 / ResourceExhausted -> Rotate key immediately
+                        if any(x in err_str for x in ['429', 'quota', 'rate limit', 'resourceexhausted']):
+                            print(f"⚠️ Key #{key_num} hit rate limit ({model_name}) → placing on 60s cooldown and rotating to next key...")
+                            mark_key_cooldown(api_key, key_num, duration=60.0)
+                            key_quota_failed = True
+                            break
+
+                        # 3. Model unavailable / deprecated / 404 / 503 / overloaded
+                        if any(x in err_str for x in [
+                            '503', 'unavailable', '404', 'not_found', 'not found', 'no longer available', 'overloaded'
+                        ]):
+                            print(f"⚠️ Model {model_name} unavailable ({model_err}) → rotating to next model...")
+                            break
+
+                        # 4. Network / Transport / SSL / Socket / Timeout blip -> brief pause & retry
+                        is_transport_err = isinstance(model_err, (
+                            httpx.TransportError,
+                            httpx.NetworkError,
+                            httpx.TimeoutException,
+                            ssl.SSLError,
+                            ConnectionError,
+                            OSError
+                        ))
+                        has_net_keyword = any(x in err_str for x in [
+                            'ssl', 'unexpected_eof', 'violation of protocol', 'server disconnected',
+                            'disconnected', 'remoteprotocolerror', 'protocol', 'broken pipe',
+                            'reset by peer', 'connection reset', 'connecterror', 'connection',
+                            'readtimeout', 'read operation timed out', 'timeout', 'timed out',
+                            'connecttimeout', 'name resolution', 'gaierror', 'errno -3', 'errno 101',
+                            'remotedisconnected', 'temporary failure'
+                        ])
+
+                        if is_transport_err or has_net_keyword:
+                            wait_sec = 1.0 + (net_retry * 1.5)
+                            print(f"⚠️ Network/SSL/Timeout blip on {model_name} ({model_err}) → retrying in {wait_sec:.1f}s (attempt {net_retry + 1}/2)...")
+                            time.sleep(wait_sec)
                             continue
-                        raise model_err
 
-            except Exception as e:
-                last_error = e
-                err_str = str(e).lower()
+                        # 5. Other error -> Log and try next model
+                        print(f"⚠️ Error on {model_name}: {model_err} → trying next model...")
+                        break
 
-                # Rate limit / Quota exceeded -> rotate to next key
-                if any(x in err_str for x in ['429', 'quota', 'rate limit', 'resourceexhausted']):
-                    print(f"⚠️ Key #{key_num} hit rate limit → rotating to next key...")
+                if key_auth_failed or key_quota_failed:
                     break
+        finally:
+            try:
+                http_client.close()
+            except Exception:
+                pass
 
-                # Server 503 unavailable -> backoff & retry
-                elif any(x in err_str for x in ['503', 'unavailable']):
-                    wait = 2 ** min(net_retry + 1, 3)
-                    print(f"⚠️ Gemini service unavailable, retrying in {wait}s (attempt {net_retry + 1}/{max_network_retries})...")
-                    time.sleep(wait)
-                    continue
-
-                # Temporary network / DNS / connection failure -> backoff & retry
-                elif any(x in err_str for x in [
-                    'name resolution', 'connecterror', 'connection', 'timeout',
-                    'gaierror', 'errno -3', 'errno 101', 'remotedisconnected',
-                    'temporary failure'
-                ]):
-                    wait = 2 ** min(net_retry + 1, 3)
-                    print(f"⚠️ Network/DNS connection blip ({e}) → retrying in {wait}s (attempt {net_retry + 1}/{max_network_retries})...")
-                    time.sleep(wait)
-                    continue
-
-                # Non-retryable error
-                else:
-                    print(f"❌ Non-retryable error: {e}")
-                    raise e
-
+    elapsed = time.time() - start_time
     raise Exception(
-        f"Gemini API request failed after multiple retries across all keys. "
-        f"Last error: {last_error}. "
-        f"Please verify your internet/WiFi connection and DNS settings if name resolution failed."
+        f"Gemini API request failed after {elapsed:.1f}s across available models and keys. "
+        f"Last error: {last_error}."
     )
 
 def get_profile_coords(img, _model_name=None):
@@ -444,7 +544,10 @@ def extract_from_pdf(pdf_file):
     print(f"📄 Processing PDF: {pdf_file.filename}")
 
     # ── Step 1: Convert PDF page 1 to image ──
+    doc = None
     try:
+        if hasattr(pdf_file, 'seek'):
+            pdf_file.seek(0)
         pdf_bytes = pdf_file.read()
         doc = fitz.open(stream=pdf_bytes, filetype='pdf')
         page = doc[0]
@@ -458,10 +561,12 @@ def extract_from_pdf(pdf_file):
         img_data = pix.tobytes('png')
         pil_image = Image.open(io.BytesIO(img_data))
         pdf_direct_text = page.get_text("text") or ""
-        doc.close()
-
+        pix = None
     except Exception as e:
         raise Exception(f"Failed to convert PDF to image: {str(e)}")
+    finally:
+        if doc is not None:
+            doc.close()
 
     # ── Step 2: Scale factor ──
     SCALE = 300 / 72
@@ -688,5 +793,15 @@ Return this exact JSON structure:
     print(f"✅ Extracted {len([v for v in extracted_texts.values() if v])} fields from PDF")
     print(f"📸 Profile image: {'✅' if profile_b64 else '❌'}")
     print(f"📱 QR image: {'✅' if qr_b64 else '❌'}")
+
+    # Explicit memory cleanup to keep memory bounded across 1-5 cards
+    try:
+        del pil_image
+        del cropped_regions
+        del gemini_parts
+    except Exception:
+        pass
+    import gc
+    gc.collect()
 
     return extracted_texts, profile_b64, qr_b64

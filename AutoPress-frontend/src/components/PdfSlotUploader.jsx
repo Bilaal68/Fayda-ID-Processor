@@ -201,7 +201,7 @@ export default function PdfSlotUploader({ files, setFiles, onGenerate, isLoading
           {isLoading ? (
             <>
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Processing {files.length} Card{files.length > 1 ? 's' : ''} with Gemini & Generating PDF...</span>
+              <span>Processing {files.length} Card{files.length > 1 ? 's' : ''} & Generating Print PNG...</span>
             </>
           ) : (
             <>
@@ -209,7 +209,7 @@ export default function PdfSlotUploader({ files, setFiles, onGenerate, isLoading
               <span>
                 {files.length === 0
                   ? 'Select at least 1 PDF to Generate'
-                  : `Generate Print PDF (${files.length} ID Card${files.length > 1 ? 's' : ''})`}
+                  : `Generate Print PNG (${files.length} ID Card${files.length > 1 ? 's' : ''})`}
               </span>
             </>
           )}

@@ -45,7 +45,7 @@ export async function processPdfTemplate(pdfFiles) {
   const blobUrl = URL.createObjectURL(blob);
 
   // Extract filename from Content-Disposition if present
-  let filename = 'fayda_id_cards.pdf';
+  let filename = 'fayda_id_cards.png';
   const disposition = response.headers.get('content-disposition');
   if (disposition && disposition.includes('filename=')) {
     const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);

@@ -6,7 +6,7 @@ export default function PdfViewer({ blobUrl, filename, onReset }) {
     if (!blobUrl) return;
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = filename || 'fayda_id_cards.pdf';
+    a.download = filename || 'fayda_id_cards.png';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -26,8 +26,8 @@ export default function PdfViewer({ blobUrl, filename, onReset }) {
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white leading-tight">Generated Print Ready PDF</h3>
-            <p className="text-xs text-slate-400">{filename || 'fayda_id_cards.pdf'}</p>
+            <h3 className="text-sm font-semibold text-white leading-tight">Generated Print Ready Sheet</h3>
+            <p className="text-xs text-slate-400">{filename || 'fayda_id_cards.png'}</p>
           </div>
         </div>
 
@@ -54,17 +54,17 @@ export default function PdfViewer({ blobUrl, filename, onReset }) {
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/25 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span>Download PDF</span>
+            <span>Download High-Res PNG</span>
           </button>
         </div>
       </div>
 
-      {/* Embedded PDF Viewer */}
-      <div className="relative flex-1 min-h-[600px] w-full bg-slate-950">
-        <iframe
-          src={`${blobUrl}#toolbar=1&navpanes=0`}
-          title="Generated PDF Preview"
-          className="w-full h-full border-none"
+      {/* High-Resolution Sheet Preview */}
+      <div className="relative flex-1 min-h-[600px] max-h-[85vh] w-full bg-slate-950 p-4 sm:p-8 overflow-auto flex items-center justify-center">
+        <img
+          src={blobUrl}
+          alt="Generated Fayda ID Card Sheet"
+          className="max-w-full max-h-full h-auto rounded-lg shadow-2xl border border-slate-800/80 object-contain transition-all"
         />
       </div>
     </div>

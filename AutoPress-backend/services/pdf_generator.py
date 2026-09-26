@@ -963,19 +963,21 @@ def draw_qr_field(
     image.alpha_composite(canvas, (box_x, box_y))
 
 
-# ============================================================
-# TEMPLATE LOADING & VALIDATION
-# ============================================================
+_TEMPLATE_CACHE: Dict[str, Image.Image] = {}
 
 def load_template(path: str, side: str) -> Image.Image:
+    if path in _TEMPLATE_CACHE:
+        return _TEMPLATE_CACHE[path].copy()
+
     print(f"📂 Loading {side} template: {path}", flush=True)
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"{side} template not found: {path}")
 
     image = Image.open(path).convert("RGBA")
-    print(f"✅ {side} template loaded: {image.width}x{image.height}", flush=True)
-    return image
+    _TEMPLATE_CACHE[path] = image
+    print(f"✅ {side} template loaded and cached: {image.width}x{image.height}", flush=True)
+    return image.copy()
 
 
 def validate_fields(
@@ -1106,11 +1108,13 @@ def render_complete_card(card_data: Dict[str, Any]) -> Dict[str, Image.Image]:
 
     print(f"PRINT CARD: {CARD_PRINT_WIDTH_PX}x{CARD_PRINT_HEIGHT_PX} @ {PRINT_DPI} DPI", flush=True)
 
+    # Free master resolution canvases immediately to save memory
+    del rendered_front
+    del rendered_back
+
     return {
         "front": print_front,
         "back": print_back,
-        "master_front": rendered_front,
-        "master_back": rendered_back,
     }
 
 
@@ -1269,13 +1273,20 @@ def get_a4_pair_positions(card_count: int) -> List[Dict[str, Any]]:
     return positions
 
 
+MIRROR_CARDS_FOR_PRINTING = True  # Reverse/mirror print for PVC film lamination
+
+
 def create_a4_pair_sheets(
     rendered_cards: List[Dict[str, Any]],
-    positions: List[Dict[str, Any]]
+    positions: List[Dict[str, Any]],
+    mirror: bool = MIRROR_CARDS_FOR_PRINTING
 ) -> List[Image.Image]:
     """
     Builds one A4 PIL image per page. On each page, every card's
     front and back are pasted side by side in their assigned row.
+    When mirror=True (PVC film lamination mode):
+      - Both front and back are mirrored horizontally (FLIP_LEFT_RIGHT)
+      - The back is placed on the left, and the front on the right
     """
     if not positions:
         return []
@@ -1291,7 +1302,7 @@ def create_a4_pair_sheets(
                 f"a4_canvas size {sheet.size} != {(A4_WIDTH_PX, A4_HEIGHT_PX)}"
             )
 
-        print(f"A4 PAGE {page_num + 1}: {A4_WIDTH_PX}x{A4_HEIGHT_PX} @ {PRINT_DPI} DPI", flush=True)
+        print(f"A4 PAGE {page_num + 1}: {A4_WIDTH_PX}x{A4_HEIGHT_PX} @ {PRINT_DPI} DPI (mirror={mirror})", flush=True)
 
         for idx, pos in enumerate(positions):
             if pos["page"] != page_num:
@@ -1310,10 +1321,18 @@ def create_a4_pair_sheets(
                         f"Card {idx + 1} image size {img.size} != {size}"
                     )
 
-            print(f"  CARD {idx + 1}: front=({fx},{fy}) back=({bx},{by})", flush=True)
+            if mirror:
+                # Mirror horizontally for PVC transfer / sublimation printing
+                front_mirrored = front_img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+                back_mirrored = back_img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
 
-            sheet.paste(front_img.convert("RGB"), (fx, fy))
-            sheet.paste(back_img.convert("RGB"), (bx, by))
+                print(f"  CARD {idx + 1} (MIRRORED): back=({fx},{fy}) front=({bx},{by})", flush=True)
+                sheet.paste(back_mirrored.convert("RGB"), (fx, fy))
+                sheet.paste(front_mirrored.convert("RGB"), (bx, by))
+            else:
+                print(f"  CARD {idx + 1}: front=({fx},{fy}) back=({bx},{by})", flush=True)
+                sheet.paste(front_img.convert("RGB"), (fx, fy))
+                sheet.paste(back_img.convert("RGB"), (bx, by))
 
         sheets.append(sheet)
 
@@ -1358,17 +1377,16 @@ def a4_image_to_pdf(images: List[Image.Image]) -> bytes:
 
 
 # ============================================================
-# MAIN FINAL PDF GENERATOR
-# Front and back sit beside each other, one card per row,
-# anchored to the TOP of the A4 page (no vertical centering).
+# ============================================================
+# MAIN FINAL PNG GENERATOR (300 DPI A4 SHEET)
 # ============================================================
 
-def generate_final_pdf(
+def generate_final_png(
     cards_data: List[Dict[str, Any]],
     template_count: Optional[int] = None
 ) -> bytes:
     print("\n========================================", flush=True)
-    print("🚀 STARTING ID PDF GENERATION", flush=True)
+    print("🚀 STARTING ID PNG GENERATION (300 DPI)", flush=True)
     print(f"🪪 Cards: {len(cards_data)}", flush=True)
     print(f"MASTER CARD: {MASTER_WIDTH}x{MASTER_HEIGHT}", flush=True)
     print(f"PRINT CARD: {CARD_PRINT_WIDTH_PX}x{CARD_PRINT_HEIGHT_PX} @ {PRINT_DPI} DPI", flush=True)
@@ -1386,6 +1404,10 @@ def generate_final_pdf(
         try:
             rendered = render_complete_card(card_data)
             rendered_cards.append(rendered)
+            if "_processed_profile" in card_data:
+                del card_data["_processed_profile"]
+            import gc
+            gc.collect()
         except Exception as exc:
             print(f"❌ Card {index + 1} failed: {type(exc).__name__}: {exc}", flush=True)
             traceback.print_exc()
@@ -1396,15 +1418,25 @@ def generate_final_pdf(
     positions = get_a4_pair_positions(len(rendered_cards))
     pages = create_a4_pair_sheets(rendered_cards, positions)
 
-    pdf_bytes = a4_image_to_pdf(pages)
+    # Convert the primary A4 sheet (2480x3508) to lossless 300 DPI PNG bytes
+    png_bytes = pil_to_png_bytes(pages[0], dpi=PRINT_DPI)
 
     print("\n========================================", flush=True)
-    print("✅ FINAL ID PDF GENERATED", flush=True)
-    print(f"📄 Pages: {len(pages)}", flush=True)
-    print(f"📦 PDF size: {len(pdf_bytes):,} bytes", flush=True)
+    print("✅ FINAL ID PNG GENERATED", flush=True)
+    print(f"📐 Sheet dimensions: {pages[0].width}x{pages[0].height} @ {PRINT_DPI} DPI", flush=True)
+    print(f"📦 PNG size: {len(png_bytes):,} bytes", flush=True)
     print("========================================", flush=True)
 
-    return pdf_bytes
+    return png_bytes
+
+
+# Alias generate_final_pdf to return the high-quality output
+def generate_final_pdf(
+    cards_data: List[Dict[str, Any]],
+    template_count: Optional[int] = None
+) -> bytes:
+    # When output is requested as PNG, route directly to generate_final_png
+    return generate_final_png(cards_data, template_count)
 
 
 # ============================================================

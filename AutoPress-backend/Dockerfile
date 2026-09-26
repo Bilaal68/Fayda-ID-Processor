@@ -1,20 +1,26 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
+# System dependencies for PDF/image processing
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
     libglib2.0-0 \
-    libgomp1 \
+    libgl1 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the application
 COPY . .
 
-ENV PORT=8080
+# Render/Hugging Face will provide the PORT
+EXPOSE 7860
 
-EXPOSE 8080
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--timeout", "300", "--workers", "1", "--threads", "4", "app:app"]
+# Start Flask with Gunicorn
+CMD ["sh", "-c", "gunicorn --timeout 360 --workers 1 --threads 4 --bind 0.0.0.0:${PORT:-7860} app:app"]
