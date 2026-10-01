@@ -1,11 +1,14 @@
 from flask import Blueprint, request, jsonify, send_file
 from fb.admin import verify_token, db
+from models import UserModel, CreditLedgerModel, ProcessingRecordModel
 from services.gemini import extract_from_images, extract_from_pdf
 from services.pdf_generator import generate_final_pdf, generate_final_png
 from datetime import datetime, timezone
 import io
 import os
 import traceback
+import uuid
+
 os.environ['CUDA_VISIBLE_DEVICES']  = ''   # disable GPU search
 if os.path.isdir('/app/models'):
     os.environ['U2NET_HOME'] = '/app/models'
@@ -15,51 +18,72 @@ os.environ['ORT_LOGGING_LEVEL']     = '3'
 fayda_bp = Blueprint('fayda', __name__)
 
 # ── Credit cost per template ──
+CREDIT_COST_PER_DOCUMENT = int(os.environ.get("CREDIT_COST_PER_DOCUMENT", 1))
 CREDIT_COST = {
-    1: 1,
-    2: 2,
-    3: 3,
-    4: 4,
-    5: 5,
+    1: 1 * CREDIT_COST_PER_DOCUMENT,
+    2: 2 * CREDIT_COST_PER_DOCUMENT,
+    3: 3 * CREDIT_COST_PER_DOCUMENT,
+    4: 4 * CREDIT_COST_PER_DOCUMENT,
+    5: 5 * CREDIT_COST_PER_DOCUMENT,
 }
 
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
 
-def get_user_credits(user_id):
-    if db is None:
-        return 999
-    try:
-        doc = db.collection('users').document(user_id).get()
-        if doc.exists:
-            return doc.to_dict().get('credits', 0)
-    except Exception:
-        pass
-    return 0
+def _resolve_user_id(user_identifier):
+    if isinstance(user_identifier, int):
+        return user_identifier
+    if isinstance(user_identifier, str):
+        if user_identifier.isdigit():
+            return int(user_identifier)
+        u = UserModel.get_by_email(user_identifier)
+        if u:
+            return u['id']
+    return None
 
-def deduct_credits(user_id, amount):
-    if db is None:
-        return True, 999
-    try:
-        user_ref = db.collection('users').document(user_id)
-        user     = user_ref.get()
-        if not user.exists:
-            return False, "User not found"
-        current_credits = user.to_dict().get('credits', 0)
-        if current_credits < amount:
-            return False, f"Insufficient credits. You have {current_credits} but need {amount}"
-        user_ref.update({'credits': current_credits - amount})
-        return True, current_credits - amount
-    except Exception as e:
-        return False, str(e)
+def get_user_credits(user_id):
+    uid = _resolve_user_id(user_id)
+    if not uid:
+        return 0
+    return CreditLedgerModel.get_balance(uid)
+
+def deduct_credits(user_id, amount, reason="Processing document", processing_id=None):
+    """
+    Atomically deducts or refunds credits.
+    Positive amount = deduction (-amount).
+    Negative amount = refund (+abs(amount)).
+    """
+    uid = _resolve_user_id(user_id)
+    if not uid:
+        return False, "User not found"
+
+    if amount > 0:
+        tx_type = "PROCESSING_DEDUCTION"
+        delta = -amount
+    else:
+        tx_type = "PROCESSING_REFUND"
+        delta = abs(amount)
+
+    success, message, new_balance = CreditLedgerModel.record_transaction(
+        user_id=uid,
+        amount=delta,
+        transaction_type=tx_type,
+        reason=reason,
+        processing_id=processing_id
+    )
+    if not success:
+        return False, message
+    return True, new_balance
 
 def is_admin(user_id):
     """Check if user has admin role"""
-    user_doc = db.collection('users').document(user_id).get()
-    if user_doc.exists:
-        return user_doc.to_dict().get('role') == 'admin'
-    return False
+    uid = _resolve_user_id(user_id)
+    if not uid:
+        return False
+    user = UserModel.get_by_id(uid)
+    return bool(user and user.get('role') == 'admin')
+
 
 # ============================================================
 # ENDPOINT 1 — Extract Image Data (WITH DETAILED LOGGING)
@@ -161,6 +185,10 @@ def generate_final_id():
     except Exception as e:
         return jsonify({'error': str(e)}), 401
 
+    uid = _resolve_user_id(user_id)
+    if not uid:
+        return jsonify({'error': 'User not found'}), 401
+
     # Step 2 — Get request data
     data = request.json
     if not data:
@@ -177,9 +205,9 @@ def generate_final_id():
 
     # STEP 4 — CREDIT CHECK AND DEDUCTION
     credit_cost = CREDIT_COST[template_count]
-    current_credits = get_user_credits(user_id)
+    current_credits = get_user_credits(uid)
 
-    print(f"💳 User [{user_id}] credits: {current_credits} | Cost: {credit_cost}")
+    print(f"💳 User [{uid}] credits: {current_credits} | Cost: {credit_cost}")
 
     if current_credits < credit_cost:
         return jsonify({
@@ -189,9 +217,25 @@ def generate_final_id():
             'required_credits': credit_cost,
         }), 402
 
+    # Create processing record
+    req_id = f"gen_{int(datetime.now(timezone.utc).timestamp() * 1000)}"
+    proc_record_id = ProcessingRecordModel.create(
+        user_id=uid,
+        processing_type="cards_image",
+        document_count=template_count,
+        credit_cost=credit_cost,
+        request_id=req_id
+    )
+
     # Deduct credits
-    success, result = deduct_credits(user_id, credit_cost)
+    success, result = deduct_credits(
+        user_id=uid,
+        amount=credit_cost,
+        reason=f"Fayda card generation ({template_count} cards)",
+        processing_id=proc_record_id
+    )
     if not success:
+        ProcessingRecordModel.mark_failed(proc_record_id, str(result))
         return jsonify({'error': result}), 402
 
     remaining_credits = result
@@ -207,7 +251,17 @@ def generate_final_id():
     # Step 6 — Generate PNG
     try:
         png_bytes = generate_final_png(cards_data, template_count)
+        ProcessingRecordModel.mark_completed(proc_record_id)
     except Exception as e:
+        print(f"❌ PNG generation failed: {e}")
+        # Automatic refund on failure
+        deduct_credits(
+            user_id=uid,
+            amount=-credit_cost,
+            reason=f"Refund: generation failed: {str(e)[:100]}",
+            processing_id=proc_record_id
+        )
+        ProcessingRecordModel.mark_failed(proc_record_id, f"PNG generation failed: {str(e)}")
         return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 
     # Step 7 — Return PNG
@@ -522,6 +576,10 @@ def process_pdf_template():
     except Exception as e:
         return jsonify({'error': str(e)}), 401
 
+    uid = _resolve_user_id(user_id)
+    if not uid:
+        return jsonify({'error': 'User not found'}), 401
+
     # Step 2 — Validate uploaded PDFs
     pdf_files = []
     for i in range(1, 6):  # pdf_1 to pdf_5
@@ -540,14 +598,14 @@ def process_pdf_template():
         if f.mimetype not in ('application/pdf', 'application/octet-stream'):
             return jsonify({'error': f'File {i+1} must be a PDF'}), 400
 
-    print(f"\n📄 Processing {len(pdf_files)} PDF file(s) for user [{user_id}]")
+    print(f"\n📄 Processing {len(pdf_files)} PDF file(s) for user [{uid}]")
 
     # STEP 4 — CREDIT CHECK AND DEDUCTION FOR PDF MODE
     template_count = len(pdf_files)
     credit_cost = CREDIT_COST[template_count]
-    current_credits = get_user_credits(user_id)
+    current_credits = get_user_credits(uid)
 
-    print(f"💳 User [{user_id}] credits: {current_credits} | Cost: {credit_cost}")
+    print(f"💳 User [{uid}] credits: {current_credits} | Cost: {credit_cost}")
 
     if current_credits < credit_cost:
         return jsonify({
@@ -557,9 +615,25 @@ def process_pdf_template():
             'required_credits': credit_cost,
         }), 402
 
+    # Create processing record
+    req_id = f"pdf_{int(datetime.now(timezone.utc).timestamp() * 1000)}"
+    proc_record_id = ProcessingRecordModel.create(
+        user_id=uid,
+        processing_type="pdf_template",
+        document_count=template_count,
+        credit_cost=credit_cost,
+        request_id=req_id
+    )
+
     # Deduct credits
-    success, result = deduct_credits(user_id, credit_cost)
+    success, result = deduct_credits(
+        user_id=uid,
+        amount=credit_cost,
+        reason=f"Fayda PDF Processing ({template_count} cards)",
+        processing_id=proc_record_id
+    )
     if not success:
+        ProcessingRecordModel.mark_failed(proc_record_id, str(result))
         return jsonify({'error': result}), 402
 
     remaining_credits = result
@@ -589,7 +663,13 @@ def process_pdf_template():
             print(f"  ❌ PDF {i+1} extraction failed: {e}")
             print(traceback.format_exc())
             # Refund credits if extraction fails
-            refund_success, _ = deduct_credits(user_id, -credit_cost)
+            deduct_credits(
+                user_id=uid,
+                amount=-credit_cost,
+                reason=f"Refund: extraction error on PDF {i+1}",
+                processing_id=proc_record_id
+            )
+            ProcessingRecordModel.mark_failed(proc_record_id, f"Extraction failed on PDF {i+1}: {str(e)}")
             return jsonify({
                 'error': f'Failed to extract data from PDF {i+1}: {str(e)}'
             }), 500
@@ -600,12 +680,19 @@ def process_pdf_template():
     # Step 6 — Generate PNG
     try:
         png_bytes = generate_final_png(all_cards, template_count)
+        ProcessingRecordModel.mark_completed(proc_record_id)
         print(f"✅ PNG generated successfully")
     except Exception as e:
         print(f"❌ PNG generation failed: {e}")
         print(traceback.format_exc())
         # Refund credits if generation fails
-        refund_success, _ = deduct_credits(user_id, -credit_cost)
+        deduct_credits(
+            user_id=uid,
+            amount=-credit_cost,
+            reason="Refund: PNG generation error",
+            processing_id=proc_record_id
+        )
+        ProcessingRecordModel.mark_failed(proc_record_id, f"PNG generation failed: {str(e)}")
         return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 
     # Step 7 — Return PNG

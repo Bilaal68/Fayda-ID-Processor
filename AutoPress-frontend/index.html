@@ -581,7 +581,346 @@
       font-size: 0.75rem;
       color: #475569;
     }
+
+    /* Landing Section */
+    .landing-section {
+      max-width: 980px;
+      margin: 1.5rem auto 3rem auto;
+      text-align: center;
+      animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .landing-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-size: 0.825rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    .landing-title {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .landing-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2.25rem auto;
+      line-height: 1.7;
+    }
+    .landing-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 3.5rem;
+      flex-wrap: wrap;
+    }
+    .landing-features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      text-align: left;
+      margin-bottom: 3rem;
+    }
+    .landing-feature-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 24px;
+      transition: all 0.25s ease;
+    }
+    .landing-feature-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .landing-feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .landing-feature-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .landing-feature-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .landing-cta-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(15, 23, 42, 0.85));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 20px;
+      padding: 2.25rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      text-align: left;
+    }
+
+    /* Auth & Credit Controls in Header */
+
+    .credit-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #fbbf24;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .credit-pill:hover {
+      background: rgba(245, 158, 11, 0.22);
+      transform: translateY(-1px);
+    }
+    .admin-btn {
+      border-color: rgba(99, 102, 241, 0.4) !important;
+      background: rgba(99, 102, 241, 0.12) !important;
+      color: #a5b4fc !important;
+    }
+    .admin-btn:hover {
+      background: rgba(99, 102, 241, 0.25) !important;
+      border-color: rgba(99, 102, 241, 0.6) !important;
+    }
+
+    /* Modals System */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.25rem;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: modalSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-card.wide {
+      max-width: 960px;
+      max-height: 90vh;
+    }
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #1e293b;
+      background: rgba(15, 23, 42, 0.95);
+    }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.6rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 8px;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    .modal-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid #1e293b;
+      padding: 0 1.5rem;
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .modal-tab {
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-tab:hover {
+      color: var(--text-main);
+    }
+    .modal-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .alert-banner {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+    .alert-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #6ee7b7;
+    }
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .stat-val.gold { color: #fbbf24; }
+    .stat-val.green { color: #34d399; }
+    .stat-val.blue { color: #818cf8; }
+    .stat-val.red { color: #f87171; }
+    .stat-lbl {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    /* Tables */
+    .data-table-container {
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #020617;
+      margin-top: 10px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+    .data-table th {
+      background: #0f172a;
+      padding: 10px 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid #1e293b;
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1e293b;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+    .data-table tr:hover td {
+      background: rgba(30, 41, 59, 0.4);
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .tag-blue { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .tag-yellow { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
   </style>
+
 </head>
 <body>
 
@@ -606,10 +945,58 @@
         </div>
       </div>
 
-      <div class="status-badge">
-        <div class="status-dot"></div>
-        <span>System Online</span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="status-badge" style="display: none;" id="systemStatusBadge">
+          <div class="status-dot"></div>
+          <span>System Online</span>
+        </div>
+
+        <!-- Logged Out State -->
+        <div id="loggedOutControls" style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn-primary" onclick="openAuthModal('login')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            Sign In / Register
+          </button>
+        </div>
+
+        <!-- Logged In State -->
+        <div id="loggedInControls" style="display: none; align-items: center; gap: 10px;">
+          <!-- Credit Balance Pill -->
+          <div class="credit-pill" onclick="openDashboardModal('credits')" title="Click to view Credit Ledger">
+            <span>⚡</span>
+            <span id="headerCreditCount">0</span>
+            <span>Credits</span>
+          </div>
+
+          <!-- User Dashboard Button -->
+          <button class="btn-secondary" onclick="openDashboardModal('overview')" id="headerUserBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span id="headerUserName">Dashboard</span>
+          </button>
+
+          <!-- Admin Panel Button (if admin) -->
+          <button class="btn-secondary admin-btn" id="headerAdminBtn" onclick="openAdminModal()" style="display: none;">
+            <span>🛡️</span> Admin Panel
+          </button>
+
+          <!-- Sign Out Button -->
+          <button class="btn-secondary" onclick="handleLogout()" title="Sign Out" style="padding: 8px 10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
       </div>
+
     </div>
   </header>
 
@@ -626,8 +1013,104 @@
       <button onclick="dismissError()" style="background:none; border:none; color:#fca5a5; cursor:pointer;">&times;</button>
     </div>
 
+    <!-- Logged Out Landing Page -->
+    <div id="landingSection" class="landing-section" style="display: none;">
+      <div class="landing-hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        Ethiopian Fayda Print Automation Studio
+      </div>
+
+      <h1 class="landing-title">Automate Fayda ID Printing in Seconds</h1>
+      <p class="landing-subtitle">
+        Transform digital Fayda National ID PDFs into millimeter-accurate, 300 DPI multi-card PVC print sheets. Intelligent OCR data extraction, sharp photo cropping, barcode placement, and automatic layout for print shops.
+      </p>
+
+      <div class="landing-actions">
+        <button class="btn-primary" onclick="openAuthModal('register')" style="padding: 12px 28px; font-size: 0.95rem; border-radius: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
+          Get Started / Create Account
+        </button>
+        <button class="btn-secondary" onclick="openAuthModal('login')" style="padding: 12px 24px; font-size: 0.95rem; border-radius: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Sign In to AutoPress
+        </button>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="landing-features-grid">
+        <div class="landing-feature-card">
+          <div class="landing-feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <div class="landing-feature-title">Batch Multi-Card Sheets</div>
+          <div class="landing-feature-text">
+            Upload from 1 to 5 Fayda PDFs simultaneously. Automatically arranges front and back sides onto standardized print trays matching PVC card production specs.
+          </div>
+        </div>
+
+        <div class="landing-feature-card">
+          <div class="landing-feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="landing-feature-title">Multiscript & Text Wrapping</div>
+          <div class="landing-feature-text">
+            Handles Amharic & English typography cleanly with dynamic wrapping on long Woreda or name labels without cutting off text.
+          </div>
+        </div>
+
+        <div class="landing-feature-card">
+          <div class="landing-feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div class="landing-feature-title">Transparent Credit System</div>
+          <div class="landing-feature-text">
+            1 successful card = 1 credit. Concurrency-safe atomic balance checking with automatic instant refund if any processing step encounters an issue.
+          </div>
+        </div>
+      </div>
+
+      <!-- Call to Action Banner -->
+      <div class="landing-cta-banner">
+        <div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+            Ready to generate print-ready ID cards?
+          </div>
+          <div style="font-size: 0.875rem; color: var(--text-muted);">
+            Sign in or create your print shop account to access the batch PDF uploader.
+          </div>
+        </div>
+        <button class="btn-primary" onclick="openAuthModal('register')" style="padding: 11px 22px; font-size: 0.9rem; border-radius: 10px;">
+          Create Free Account &rarr;
+        </button>
+      </div>
+    </div>
+
     <!-- Mode 1: Uploader View -->
     <div id="uploaderSection">
+
       <div class="hero">
         <div class="hero-tag">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -745,13 +1228,452 @@
     AutoPress &copy; 2026 &bull; Digital Print Automation &bull; Ethiopian Fayda National ID Suite
   </footer>
 
+  <!-- ================= AUTH MODAL ================= -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="authModalTitle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>AutoPress Account</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+      </div>
+
+      <div class="modal-tabs" id="authTabsNav">
+        <button class="modal-tab active" id="tabBtnLogin" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="modal-tab" id="tabBtnRegister" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+          <div id="loginAlert" class="alert-banner alert-error"></div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="loginEmail" class="form-input" required placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin:0;">Password</label>
+              <a href="javascript:void(0)" onclick="showForgotPasswordView()" style="font-size:0.75rem; color:#818cf8; text-decoration:none;">Forgot password?</a>
+            </div>
+            <input type="password" id="loginPassword" class="form-input" required placeholder="Enter your password" />
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:0.5rem;" id="loginBtn">
+            Sign In
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" style="display:none;" onsubmit="handleRegisterSubmit(event)">
+          <div id="registerAlert" class="alert-banner alert-error"></div>
+          <div id="registerSuccessAlert" class="alert-banner alert-success"></div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="regFullName" class="form-input" required placeholder="Abebe Bikila" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="regEmail" class="form-input" required placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password (min 6 characters)</label>
+            <input type="password" id="regPassword" class="form-input" required placeholder="Create a strong password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" id="regConfirmPassword" class="form-input" required placeholder="Confirm your password" />
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:0.5rem;" id="registerBtn">
+            Create Account
+          </button>
+        </form>
+
+        <!-- Forgot Password Form -->
+        <form id="forgotForm" style="display:none;" onsubmit="handleForgotSubmit(event)">
+          <div id="forgotAlert" class="alert-banner alert-error"></div>
+          <div id="forgotSuccessAlert" class="alert-banner alert-success"></div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+            Enter your account email address and we'll send you instructions to reset your password.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="forgotEmail" class="form-input" required placeholder="you@example.com" />
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:0.5rem;" id="forgotBtn">
+            Send Reset Instructions
+          </button>
+          <div style="text-align:center; margin-top:1rem;">
+            <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="font-size:0.8rem; color:#818cf8; text-decoration:none;">&larr; Back to Sign In</a>
+          </div>
+        </form>
+
+        <!-- Reset Password Form -->
+        <form id="resetForm" style="display:none;" onsubmit="handleResetSubmit(event)">
+          <div id="resetAlert" class="alert-banner alert-error"></div>
+          <div id="resetSuccessAlert" class="alert-banner alert-success"></div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+            Enter your new password below.
+          </p>
+          <input type="hidden" id="resetTokenInput" />
+          <div class="form-group">
+            <label class="form-label">New Password (min 6 characters)</label>
+            <input type="password" id="resetPassword" class="form-input" required placeholder="New password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" id="resetConfirmPassword" class="form-input" required placeholder="Confirm new password" />
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:0.5rem;" id="resetBtn">
+            Reset Password
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= USER DASHBOARD MODAL ================= -->
+  <div id="dashboardModal" class="modal-overlay">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>User Dashboard</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('dashboardModal')">&times;</button>
+      </div>
+
+      <!-- User Profile Header Summary -->
+      <div style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid #1e293b; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+        <div>
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);" id="dashFullName">User</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="dashEmail">user@example.com</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="tag tag-green" id="dashStatusTag">ACTIVE</span>
+          <span class="tag tag-blue" id="dashVerifiedTag">VERIFIED</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div style="padding: 1.25rem 1.5rem 0.5rem 1.5rem;">
+        <div class="stats-grid">
+          <div class="stat-card" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.05);">
+            <div class="stat-val gold" id="dashBalVal">0</div>
+            <div class="stat-lbl">Current Credits</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val green" id="dashRecVal">0</div>
+            <div class="stat-lbl">Credits Received</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val blue" id="dashUsedVal">0</div>
+            <div class="stat-lbl">Credits Used</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="dashTotalDocsVal">0</div>
+            <div class="stat-lbl">Docs Processed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val green" id="dashSuccessDocsVal">0</div>
+            <div class="stat-lbl">Successful</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val red" id="dashFailedDocsVal">0</div>
+            <div class="stat-lbl">Failed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabDashCredits" onclick="switchDashboardTab('credits')">Credit History</button>
+        <button class="modal-tab" id="tabDashProcessing" onclick="switchDashboardTab('processing')">Processing History</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1rem 1.5rem 1.5rem 1.5rem;">
+        <!-- Credits Ledger Tab -->
+        <div id="dashCreditsView">
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Transaction Type</th>
+                  <th>Amount</th>
+                  <th>Reason</th>
+                  <th>Balance After</th>
+                </tr>
+              </thead>
+              <tbody id="dashCreditsTableBody">
+                <tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading ledger transactions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Processing History Tab -->
+        <div id="dashProcessingView" style="display:none;">
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Request ID</th>
+                  <th>Type</th>
+                  <th>Cards</th>
+                  <th>Credit Cost</th>
+                  <th>Status</th>
+                  <th>Note / Error</th>
+                </tr>
+              </thead>
+              <tbody id="dashProcessingTableBody">
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading processing records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN PANEL MODAL ================= -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span style="color:#818cf8;">🛡️</span>
+          <span>System Administration & Audit</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
+      </div>
+
+      <!-- Overview Stats -->
+      <div style="padding: 1.25rem 1.5rem 0.5rem 1.5rem;">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val blue" id="admTotalUsers">0</div>
+            <div class="stat-lbl">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val green" id="admActiveUsers">0</div>
+            <div class="stat-lbl">Active Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val red" id="admSuspUsers">0</div>
+            <div class="stat-lbl">Suspended</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val gold" id="admIssuedCredits">0</div>
+            <div class="stat-lbl">Credits Issued</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val blue" id="admUsedCredits">0</div>
+            <div class="stat-lbl">Credits Used</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="admTotalDocs">0</div>
+            <div class="stat-lbl">Total Docs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabAdmUsers" onclick="switchAdminTab('users')">Users Management</button>
+        <button class="modal-tab" id="tabAdmCredits" onclick="switchAdminTab('credits')">Global Credit Ledger</button>
+        <button class="modal-tab" id="tabAdmProcessing" onclick="switchAdminTab('processing')">Processing Records</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1rem 1.5rem 1.5rem 1.5rem;">
+        <!-- Users Management View -->
+        <div id="admUsersView">
+          <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+            <input type="text" id="admUserSearchInput" class="form-input" placeholder="Search users by name or email..." oninput="handleAdminUserSearch(this.value)" style="max-width: 380px;" />
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="admUsersCount">0 users</span>
+          </div>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Status</th>
+                  <th>Credits Balance</th>
+                  <th>Docs Done</th>
+                  <th>Joined</th>
+                  <th>Last Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admUsersTableBody">
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Global Credit Ledger View -->
+        <div id="admCreditsView" style="display:none;">
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Reason</th>
+                  <th>Admin Actor</th>
+                  <th>Balance After</th>
+                </tr>
+              </thead>
+              <tbody id="admCreditsTableBody">
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading global ledger...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Global Processing History View -->
+        <div id="admProcessingView" style="display:none;">
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Request ID</th>
+                  <th>Type</th>
+                  <th>Cards</th>
+                  <th>Cost</th>
+                  <th>Status</th>
+                  <th>Failure Reason</th>
+                </tr>
+              </thead>
+              <tbody id="admProcessingTableBody">
+                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading processing records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN CREDIT ADJUSTMENT MODAL ================= -->
+  <div id="creditActionModal" class="modal-overlay" style="z-index: 1100;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span style="color:#fbbf24;">⚡</span>
+          <span>Adjust User Credits</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('creditActionModal')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="creditActionAlert" class="alert-banner alert-error"></div>
+        <input type="hidden" id="targetCreditUserId" />
+
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 1rem;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Target User:</div>
+          <div style="font-weight: 700; color: var(--text-main);" id="targetCreditUserEmail">user@example.com</div>
+          <div style="font-size: 0.8rem; color: #fbbf24; margin-top: 4px;">
+            Current Balance: <strong id="targetCreditUserBal">0</strong> credits
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Action</label>
+          <div style="display:flex; gap:10px;">
+            <label style="flex:1; display:flex; align-items:center; gap:6px; background:#020617; border:1px solid #334155; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="creditActionType" value="add" checked onchange="updateCreditModalLabels()" />
+              <span style="color:#34d399; font-weight:600;">+ Add Credits (Grant)</span>
+            </label>
+            <label style="flex:1; display:flex; align-items:center; gap:6px; background:#020617; border:1px solid #334155; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="creditActionType" value="remove" onchange="updateCreditModalLabels()" />
+              <span style="color:#f87171; font-weight:600;">- Remove Credits</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="creditAmountLabel">Amount (Credits)</label>
+          <input type="number" id="creditAmountInput" class="form-input" min="1" step="1" value="100" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason (Recorded in Audit Ledger)</label>
+          <input type="text" id="creditReasonInput" class="form-input" placeholder="e.g. Monthly allocation / Package purchase" required />
+        </div>
+
+        <!-- Confirmation Prompt Box -->
+        <div id="creditConfirmBox" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600; margin-bottom: 4px;">Confirmation Required</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="creditConfirmText">
+            Are you sure you want to add 100 credits to this account?
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn-secondary" onclick="closeModal('creditActionModal')">Cancel</button>
+          <button type="button" class="btn-primary" id="creditConfirmBtn" onclick="executeCreditAdjustment()">
+            Confirm Adjustment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= USER STATUS CONFIRM MODAL ================= -->
+  <div id="userStatusModal" class="modal-overlay" style="z-index: 1100;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>Account Status Confirmation</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('userStatusModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 1.5rem;" id="userStatusConfirmPrompt">
+          Are you sure you want to suspend this user?
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn-secondary" onclick="closeModal('userStatusModal')">Cancel</button>
+          <button type="button" class="btn-primary" id="userStatusConfirmBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <script>
-    const API_BASE_URL = 'https://api-autopress.familyacadamyschool.com';
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:5000'
+      : (window.location.protocol === 'http:' ? 'http://api-autopress.familyacadamyschool.com' : 'https://api-autopress.familyacadamyschool.com');
+
+    // Authentication & User State
+    let currentToken = localStorage.getItem('autopress_token') || null;
+    let currentUser = null;
+    try {
+      currentUser = JSON.parse(localStorage.getItem('autopress_user') || 'null');
+    } catch {
+      currentUser = null;
+    }
+
     let uploadedFiles = [];
     let currentBlobUrl = null;
     let currentBlob = null;
     let currentFilename = 'fayda_id_cards.png';
     let isProcessing = false;
+
 
     function formatFileSize(bytes) {
       if (!bytes) return '0 B';
@@ -916,8 +1838,865 @@
       }
     }
 
+    // ==========================================
+    // MODAL HELPERS
+    // ==========================================
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('open');
+    }
+
+    // Close on clicking backdrop
+    window.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('open');
+      }
+    });
+
+    // ==========================================
+    // AUTHENTICATION UI & STATE
+    // ==========================================
+    function updateAppViewState() {
+      const isAuth = !!(currentToken && currentUser);
+      const landingSection = document.getElementById('landingSection');
+      const uploaderSection = document.getElementById('uploaderSection');
+      const previewSection = document.getElementById('previewSection');
+
+      if (isAuth) {
+        if (landingSection) landingSection.style.display = 'none';
+        if (currentBlobUrl) {
+          if (uploaderSection) uploaderSection.style.display = 'none';
+          if (previewSection) previewSection.style.display = 'flex';
+        } else {
+          if (uploaderSection) uploaderSection.style.display = 'block';
+          if (previewSection) previewSection.style.display = 'none';
+        }
+      } else {
+        if (landingSection) landingSection.style.display = 'block';
+        if (uploaderSection) uploaderSection.style.display = 'none';
+        if (previewSection) previewSection.style.display = 'none';
+      }
+    }
+
+    function updateHeaderAuthUI() {
+      const loggedOutDiv = document.getElementById('loggedOutControls');
+      const loggedInDiv = document.getElementById('loggedInControls');
+      const hdrUserName = document.getElementById('headerUserName');
+      const hdrCreditCount = document.getElementById('headerCreditCount');
+      const hdrAdminBtn = document.getElementById('headerAdminBtn');
+
+      if (currentToken && currentUser) {
+        if (loggedOutDiv) loggedOutDiv.style.display = 'none';
+        if (loggedInDiv) loggedInDiv.style.display = 'flex';
+        if (hdrUserName) hdrUserName.textContent = currentUser.full_name || currentUser.email;
+        if (hdrCreditCount) hdrCreditCount.textContent = currentUser.current_credits ?? 0;
+        if (hdrAdminBtn) {
+          hdrAdminBtn.style.display = (currentUser.role === 'admin') ? 'inline-flex' : 'none';
+        }
+      } else {
+        if (loggedOutDiv) loggedOutDiv.style.display = 'flex';
+        if (loggedInDiv) loggedInDiv.style.display = 'none';
+      }
+
+      updateAppViewState();
+    }
+
+
+    function openAuthModal(tab = 'login') {
+      openModal('authModal');
+      switchAuthTab(tab);
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const regForm = document.getElementById('registerForm');
+      const forgotForm = document.getElementById('forgotForm');
+      const resetForm = document.getElementById('resetForm');
+      const tabNav = document.getElementById('authTabsNav');
+      const tabBtnLogin = document.getElementById('tabBtnLogin');
+      const tabBtnRegister = document.getElementById('tabBtnRegister');
+
+      // Clear alerts
+      ['loginAlert', 'registerAlert', 'registerSuccessAlert', 'forgotAlert', 'forgotSuccessAlert', 'resetAlert', 'resetSuccessAlert'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.display = 'none'; el.textContent = ''; }
+      });
+
+      if (tab === 'login') {
+        tabNav.style.display = 'flex';
+        tabBtnLogin.classList.add('active');
+        tabBtnRegister.classList.remove('active');
+        loginForm.style.display = 'block';
+        regForm.style.display = 'none';
+        forgotForm.style.display = 'none';
+        resetForm.style.display = 'none';
+      } else if (tab === 'register') {
+        tabNav.style.display = 'flex';
+        tabBtnLogin.classList.remove('active');
+        tabBtnRegister.classList.add('active');
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+        forgotForm.style.display = 'none';
+        resetForm.style.display = 'none';
+      } else if (tab === 'forgot') {
+        tabNav.style.display = 'none';
+        loginForm.style.display = 'none';
+        regForm.style.display = 'none';
+        forgotForm.style.display = 'block';
+        resetForm.style.display = 'none';
+      } else if (tab === 'reset') {
+        tabNav.style.display = 'none';
+        loginForm.style.display = 'none';
+        regForm.style.display = 'none';
+        forgotForm.style.display = 'none';
+        resetForm.style.display = 'block';
+      }
+    }
+
+    function showForgotPasswordView() {
+      switchAuthTab('forgot');
+    }
+
+    async function refreshUserProfile() {
+      if (!currentToken) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.user) {
+            currentUser = data.user;
+            localStorage.setItem('autopress_user', JSON.stringify(currentUser));
+            updateHeaderAuthUI();
+          }
+        } else if (res.status === 401 || res.status === 403) {
+          handleLogout();
+        }
+      } catch (err) {
+        console.warn('[AutoPress] User sync notice:', err);
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const alertEl = document.getElementById('loginAlert');
+      const submitBtn = document.getElementById('loginBtn');
+      alertEl.style.display = 'none';
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to sign in.');
+        }
+
+        currentToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem('autopress_token', currentToken);
+        localStorage.setItem('autopress_user', JSON.stringify(currentUser));
+
+        closeModal('authModal');
+        updateHeaderAuthUI();
+      } catch (err) {
+        alertEl.textContent = err.message || 'Login failed.';
+        alertEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const alertEl = document.getElementById('registerAlert');
+      const successEl = document.getElementById('registerSuccessAlert');
+      const submitBtn = document.getElementById('registerBtn');
+      alertEl.style.display = 'none';
+      successEl.style.display = 'none';
+
+      const fullName = document.getElementById('regFullName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+      if (password !== confirmPassword) {
+        alertEl.textContent = 'Passwords do not match.';
+        alertEl.style.display = 'block';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: fullName,
+            email,
+            password,
+            confirm_password: confirmPassword
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to create account.');
+        }
+
+        currentToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem('autopress_token', currentToken);
+        localStorage.setItem('autopress_user', JSON.stringify(currentUser));
+
+        successEl.textContent = 'Account created successfully! Check your email for verification.';
+        successEl.style.display = 'block';
+        updateHeaderAuthUI();
+
+        setTimeout(() => {
+          closeModal('authModal');
+        }, 1500);
+      } catch (err) {
+        alertEl.textContent = err.message || 'Registration failed.';
+        alertEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+      }
+    }
+
+    async function handleForgotSubmit(e) {
+      e.preventDefault();
+      const alertEl = document.getElementById('forgotAlert');
+      const successEl = document.getElementById('forgotSuccessAlert');
+      const submitBtn = document.getElementById('forgotBtn');
+      alertEl.style.display = 'none';
+      successEl.style.display = 'none';
+
+      const email = document.getElementById('forgotEmail').value.trim();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        successEl.textContent = data.message || 'Password reset link sent if account exists.';
+        successEl.style.display = 'block';
+      } catch (err) {
+        alertEl.textContent = err.message || 'Request failed.';
+        alertEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Reset Instructions';
+      }
+    }
+
+    async function handleResetSubmit(e) {
+      e.preventDefault();
+      const alertEl = document.getElementById('resetAlert');
+      const successEl = document.getElementById('resetSuccessAlert');
+      const submitBtn = document.getElementById('resetBtn');
+      alertEl.style.display = 'none';
+      successEl.style.display = 'none';
+
+      const token = document.getElementById('resetTokenInput').value;
+      const password = document.getElementById('resetPassword').value;
+      const confirmPassword = document.getElementById('resetConfirmPassword').value;
+
+      if (password !== confirmPassword) {
+        alertEl.textContent = 'Passwords do not match.';
+        alertEl.style.display = 'block';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Resetting password...';
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token,
+            password,
+            confirm_password: confirmPassword
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to reset password.');
+
+        successEl.textContent = 'Password reset successfully! Redirecting to login...';
+        successEl.style.display = 'block';
+
+        setTimeout(() => {
+          switchAuthTab('login');
+        }, 1500);
+      } catch (err) {
+        alertEl.textContent = err.message || 'Password reset failed.';
+        alertEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Reset Password';
+      }
+    }
+
+    function handleLogout() {
+      currentToken = null;
+      currentUser = null;
+      localStorage.removeItem('autopress_token');
+      localStorage.removeItem('autopress_user');
+      updateHeaderAuthUI();
+      closeModal('dashboardModal');
+      closeModal('adminModal');
+    }
+
+    // ==========================================
+    // USER DASHBOARD
+    // ==========================================
+    function openDashboardModal(initialTab = 'credits') {
+      if (!currentToken) {
+        openAuthModal('login');
+        return;
+      }
+      openModal('dashboardModal');
+      loadUserDashboardData();
+      switchDashboardTab(initialTab);
+    }
+
+    function switchDashboardTab(tab) {
+      const tabCredits = document.getElementById('tabDashCredits');
+      const tabProc = document.getElementById('tabDashProcessing');
+      const viewCredits = document.getElementById('dashCreditsView');
+      const viewProc = document.getElementById('dashProcessingView');
+
+      if (tab === 'processing') {
+        tabProc.classList.add('active');
+        tabCredits.classList.remove('active');
+        viewProc.style.display = 'block';
+        viewCredits.style.display = 'none';
+      } else {
+        tabCredits.classList.add('active');
+        tabProc.classList.remove('active');
+        viewCredits.style.display = 'block';
+        viewProc.style.display = 'none';
+      }
+    }
+
+    async function loadUserDashboardData() {
+      if (!currentToken) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user/dashboard`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load dashboard data.');
+        const json = await res.json();
+        const d = json.data;
+
+        // User profile
+        document.getElementById('dashFullName').textContent = d.user.full_name;
+        document.getElementById('dashEmail').textContent = d.user.email;
+        const statusTag = document.getElementById('dashStatusTag');
+        statusTag.textContent = d.user.status.toUpperCase();
+        statusTag.className = d.user.status === 'active' ? 'tag tag-green' : 'tag tag-red';
+
+        const verTag = document.getElementById('dashVerifiedTag');
+        verTag.textContent = d.user.is_verified ? 'VERIFIED' : 'UNVERIFIED';
+        verTag.className = d.user.is_verified ? 'tag tag-blue' : 'tag tag-yellow';
+
+        // Stats
+        document.getElementById('dashBalVal').textContent = d.credits.current_balance;
+        document.getElementById('dashRecVal').textContent = d.credits.total_received;
+        document.getElementById('dashUsedVal').textContent = d.credits.total_used;
+        document.getElementById('dashTotalDocsVal').textContent = d.processing.total_documents;
+        document.getElementById('dashSuccessDocsVal').textContent = d.processing.successful_documents;
+        document.getElementById('dashFailedDocsVal').textContent = d.processing.failed_documents;
+
+        // Update header balance in sync
+        currentUser.current_credits = d.credits.current_balance;
+        updateHeaderAuthUI();
+
+        // Render credit ledger table
+        renderUserCreditLedger(d.recent_activity.transactions);
+
+        // Render processing records table
+        renderUserProcessingTable(d.recent_activity.processing);
+
+      } catch (err) {
+        console.error('[AutoPress] Dashboard error:', err);
+      }
+    }
+
+    function renderUserCreditLedger(transactions) {
+      const tbody = document.getElementById('dashCreditsTableBody');
+      if (!transactions || transactions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">No credit transactions yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = transactions.map(tx => {
+        const isPos = tx.amount > 0;
+        const amtColor = isPos ? '#34d399' : '#f87171';
+        const sign = isPos ? '+' : '';
+        const dateStr = tx.created_at ? new Date(tx.created_at).toLocaleDateString() + ' ' + new Date(tx.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+        return `
+          <tr>
+            <td style="color:var(--text-muted); font-size:0.75rem;">${dateStr}</td>
+            <td><span class="tag tag-blue">${tx.transaction_type}</span></td>
+            <td style="font-weight:700; color:${amtColor};">${sign}${tx.amount}</td>
+            <td style="color:var(--text-muted);">${tx.reason || '-'}</td>
+            <td style="font-weight:600;">${tx.balance_after}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderUserProcessingTable(records) {
+      const tbody = document.getElementById('dashProcessingTableBody');
+      if (!records || records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No documents processed yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = records.map(r => {
+        const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString() + ' ' + new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+        const statusTag = r.status === 'completed'
+          ? '<span class="tag tag-green">COMPLETED</span>'
+          : (r.status === 'failed' ? '<span class="tag tag-red">FAILED</span>' : '<span class="tag tag-yellow">PENDING</span>');
+        return `
+          <tr>
+            <td style="color:var(--text-muted); font-size:0.75rem;">${dateStr}</td>
+            <td style="font-family:monospace; font-size:0.75rem;">${r.request_id || '-'}</td>
+            <td>${r.processing_type}</td>
+            <td style="font-weight:600;">${r.document_count}</td>
+            <td>${r.credit_cost}</td>
+            <td>${statusTag}</td>
+            <td style="color:var(--text-muted); font-size:0.75rem;">${r.failure_reason || '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // ADMIN PANEL
+    // ==========================================
+    function openAdminModal() {
+      if (!currentToken || !currentUser || currentUser.role !== 'admin') {
+        showError('Unauthorized. Admin privileges required.');
+        return;
+      }
+      openModal('adminModal');
+      loadAdminStats();
+      loadAdminUsers();
+      switchAdminTab('users');
+    }
+
+    function switchAdminTab(tab) {
+      const tabUsers = document.getElementById('tabAdmUsers');
+      const tabCredits = document.getElementById('tabAdmCredits');
+      const tabProc = document.getElementById('tabAdmProcessing');
+
+      const viewUsers = document.getElementById('admUsersView');
+      const viewCredits = document.getElementById('admCreditsView');
+      const viewProc = document.getElementById('admProcessingView');
+
+      [tabUsers, tabCredits, tabProc].forEach(b => b.classList.remove('active'));
+      [viewUsers, viewCredits, viewProc].forEach(v => v.style.display = 'none');
+
+      if (tab === 'credits') {
+        tabCredits.classList.add('active');
+        viewCredits.style.display = 'block';
+        loadAdminCreditHistory();
+      } else if (tab === 'processing') {
+        tabProc.classList.add('active');
+        viewProc.style.display = 'block';
+        loadAdminProcessingHistory();
+      } else {
+        tabUsers.classList.add('active');
+        viewUsers.style.display = 'block';
+        loadAdminUsers();
+      }
+    }
+
+    async function loadAdminStats() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const s = json.data;
+
+        document.getElementById('admTotalUsers').textContent = s.total_users;
+        document.getElementById('admActiveUsers').textContent = s.active_users;
+        document.getElementById('admSuspUsers').textContent = s.suspended_users;
+        document.getElementById('admIssuedCredits').textContent = s.total_credits_issued;
+        document.getElementById('admUsedCredits').textContent = s.total_credits_used;
+        document.getElementById('admTotalDocs').textContent = s.total_documents;
+      } catch (err) {
+        console.error('[AutoPress] Admin stats error:', err);
+      }
+    }
+
+    let adminSearchTimeout = null;
+    function handleAdminUserSearch(query) {
+      clearTimeout(adminSearchTimeout);
+      adminSearchTimeout = setTimeout(() => {
+        loadAdminUsers(query);
+      }, 300);
+    }
+
+    async function loadAdminUsers(search = '') {
+      const tbody = document.getElementById('admUsersTableBody');
+      const countEl = document.getElementById('admUsersCount');
+      try {
+        const url = search
+          ? `${API_BASE_URL}/api/admin/users?search=${encodeURIComponent(search)}`
+          : `${API_BASE_URL}/api/admin/users`;
+
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load users.');
+        const json = await res.json();
+        const users = json.users || [];
+
+        if (countEl) countEl.textContent = `${json.total} user(s)`;
+
+        if (users.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No users found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = users.map(u => {
+          const isSusp = u.status === 'suspended';
+          const statusTag = isSusp ? '<span class="tag tag-red">SUSPENDED</span>' : '<span class="tag tag-green">ACTIVE</span>';
+          const toggleAction = isSusp ? 'reactivate' : 'suspend';
+          const toggleLabel = isSusp ? 'Reactivate' : 'Suspend';
+          const toggleClass = isSusp ? 'tag-green' : 'tag-red';
+          const regDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+          const lastAct = u.last_activity ? new Date(u.last_activity).toLocaleDateString() : 'Never';
+
+          return `
+            <tr>
+              <td>
+                <div style="font-weight:600; color:var(--text-main);">${escapeHtml(u.full_name)}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(u.email)}</div>
+              </td>
+              <td>${statusTag}</td>
+              <td style="font-weight:700; color:#fbbf24;">${u.current_credits}</td>
+              <td>${u.total_documents || 0}</td>
+              <td style="color:var(--text-muted); font-size:0.75rem;">${regDate}</td>
+              <td style="color:var(--text-muted); font-size:0.75rem;">${lastAct}</td>
+              <td>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptCreditAdjustment(${u.id}, '${escapeHtml(u.email)}', ${u.current_credits})">
+                    ⚡ Credits
+                  </button>
+                  ${u.role !== 'admin' ? `
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptStatusToggle(${u.id}, '${escapeHtml(u.email)}', '${u.status}')">
+                      ${toggleLabel}
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#f87171;">Failed to load users: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadAdminCreditHistory() {
+      const tbody = document.getElementById('admCreditsTableBody');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/credits/history?limit=100`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load ledger.');
+        const json = await res.json();
+        const history = json.history || [];
+
+        if (history.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No credit transactions on record.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = history.map(tx => {
+          const isPos = tx.amount > 0;
+          const amtColor = isPos ? '#34d399' : '#f87171';
+          const sign = isPos ? '+' : '';
+          const dateStr = tx.created_at ? new Date(tx.created_at).toLocaleString() : '-';
+          return `
+            <tr>
+              <td style="color:var(--text-muted); font-size:0.75rem;">${dateStr}</td>
+              <td>
+                <div style="font-weight:600;">${escapeHtml(tx.user_name || 'User')}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(tx.user_email || '')}</div>
+              </td>
+              <td><span class="tag tag-blue">${tx.transaction_type}</span></td>
+              <td style="font-weight:700; color:${amtColor};">${sign}${tx.amount}</td>
+              <td style="color:var(--text-muted);">${escapeHtml(tx.reason || '-')}</td>
+              <td style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(tx.admin_email || 'System')}</td>
+              <td style="font-weight:600;">${tx.balance_after}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#f87171;">Failed to load credit ledger: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadAdminProcessingHistory() {
+      const tbody = document.getElementById('admProcessingTableBody');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/processing/history?limit=100`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load processing history.');
+        const json = await res.json();
+        const records = json.history || [];
+
+        if (records.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">No processing records on record.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = records.map(r => {
+          const dateStr = r.created_at ? new Date(r.created_at).toLocaleString() : '-';
+          const statusTag = r.status === 'completed'
+            ? '<span class="tag tag-green">COMPLETED</span>'
+            : (r.status === 'failed' ? '<span class="tag tag-red">FAILED</span>' : '<span class="tag tag-yellow">PENDING</span>');
+          return `
+            <tr>
+              <td style="color:var(--text-muted); font-size:0.75rem;">${dateStr}</td>
+              <td>
+                <div style="font-weight:600;">${escapeHtml(r.user_name || 'User')}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(r.user_email || '')}</div>
+              </td>
+              <td style="font-family:monospace; font-size:0.75rem;">${r.request_id || '-'}</td>
+              <td>${r.processing_type}</td>
+              <td style="font-weight:600;">${r.document_count}</td>
+              <td>${r.credit_cost}</td>
+              <td>${statusTag}</td>
+              <td style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(r.failure_reason || '—')}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:#f87171;">Failed to load processing history: ${err.message}</td></tr>`;
+      }
+    }
+
+    // ==========================================
+    // ADMIN CREDIT ADJUSTMENT DIALOG
+    // ==========================================
+    function promptCreditAdjustment(userId, userEmail, currentBalance) {
+      document.getElementById('targetCreditUserId').value = userId;
+      document.getElementById('targetCreditUserEmail').textContent = userEmail;
+      document.getElementById('targetCreditUserBal').textContent = currentBalance;
+      document.getElementById('creditAmountInput').value = '100';
+      document.getElementById('creditReasonInput').value = '';
+      document.querySelector('input[name="creditActionType"][value="add"]').checked = true;
+      document.getElementById('creditActionAlert').style.display = 'none';
+
+      updateCreditModalLabels();
+      openModal('creditActionModal');
+    }
+
+    function updateCreditModalLabels() {
+      const isAdd = document.querySelector('input[name="creditActionType"]:checked').value === 'add';
+      const userEmail = document.getElementById('targetCreditUserEmail').textContent;
+      const amount = document.getElementById('creditAmountInput').value || '0';
+      const confirmText = document.getElementById('creditConfirmText');
+
+      if (isAdd) {
+        confirmText.textContent = `Are you sure you want to add ${amount} credits to ${userEmail}?`;
+      } else {
+        confirmText.textContent = `Are you sure you want to deduct ${amount} credits from ${userEmail}?`;
+      }
+    }
+
+    document.getElementById('creditAmountInput').addEventListener('input', updateCreditModalLabels);
+
+    async function executeCreditAdjustment() {
+      const alertEl = document.getElementById('creditActionAlert');
+      const submitBtn = document.getElementById('creditConfirmBtn');
+      alertEl.style.display = 'none';
+
+      const userId = parseInt(document.getElementById('targetCreditUserId').value, 10);
+      const amount = parseInt(document.getElementById('creditAmountInput').value, 10);
+      const action = document.querySelector('input[name="creditActionType"]:checked').value;
+      const reason = document.getElementById('creditReasonInput').value.trim();
+
+      if (!amount || amount <= 0) {
+        alertEl.textContent = 'Please enter a valid positive number of credits.';
+        alertEl.style.display = 'block';
+        return;
+      }
+
+      if (!reason) {
+        alertEl.textContent = 'Please provide a clear reason for the audit ledger.';
+        alertEl.style.display = 'block';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Applying...';
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/credits`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            amount: amount,
+            action: action,
+            reason: reason
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to adjust credits.');
+
+        closeModal('creditActionModal');
+        loadAdminUsers();
+        loadAdminStats();
+      } catch (err) {
+        alertEl.textContent = err.message || 'Credit adjustment failed.';
+        alertEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm Adjustment';
+      }
+    }
+
+    // ==========================================
+    // ADMIN USER STATUS TOGGLE (SUSPEND/ACTIVATE)
+    // ==========================================
+    function promptStatusToggle(userId, userEmail, currentStatus) {
+      const isSuspended = currentStatus === 'suspended';
+      const newStatus = isSuspended ? 'active' : 'suspended';
+      const actionWord = isSuspended ? 'reactivate' : 'suspend';
+
+      const promptEl = document.getElementById('userStatusConfirmPrompt');
+      promptEl.textContent = `Are you sure you want to ${actionWord} the account for ${userEmail}?`;
+
+      const confirmBtn = document.getElementById('userStatusConfirmBtn');
+      confirmBtn.onclick = async () => {
+        confirmBtn.disabled = true;
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to update status.');
+
+          closeModal('userStatusModal');
+          loadAdminUsers();
+          loadAdminStats();
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        } finally {
+          confirmBtn.disabled = false;
+        }
+      };
+
+      openModal('userStatusModal');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ==========================================
+    // URL TOKENS (EMAIL VERIFY / PASSWORD RESET)
+    // ==========================================
+    async function checkUrlTokens() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const verifyToken = urlParams.get('verify_token');
+      const resetToken = urlParams.get('reset_token');
+
+      if (verifyToken) {
+        openAuthModal('login');
+        const alertEl = document.getElementById('loginAlert');
+        alertEl.style.display = 'block';
+        alertEl.className = 'alert-banner alert-success';
+        alertEl.textContent = 'Verifying your account...';
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: verifyToken })
+          });
+          const d = await res.json();
+          if (res.ok) {
+            alertEl.textContent = 'Your email has been successfully verified! You can now log in.';
+          } else {
+            alertEl.className = 'alert-banner alert-error';
+            alertEl.textContent = d.error || 'Verification failed.';
+          }
+        } catch (err) {
+          alertEl.className = 'alert-banner alert-error';
+          alertEl.textContent = err.message || 'Verification failed.';
+        }
+      } else if (resetToken) {
+        document.getElementById('resetTokenInput').value = resetToken;
+        openAuthModal('reset');
+      }
+    }
+
+    // ==========================================
+    // GENERATE PDF (CREDIT PROTECTED)
+    // ==========================================
     async function generatePdf() {
       if (uploadedFiles.length === 0 || isProcessing) return;
+
+      // 1. Enforce authentication
+      if (!currentToken) {
+        showError('Authentication required. Please sign in or create an account to process Fayda ID cards.');
+        openAuthModal('login');
+        return;
+      }
 
       isProcessing = true;
       dismissError();
@@ -937,8 +2716,26 @@
         console.log(`[AutoPress] Submitting to: ${API_BASE_URL}/process-pdf-template`);
         const response = await fetch(`${API_BASE_URL}/process-pdf-template`, {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentToken}`
+          },
           body: formData,
         });
+
+        if (response.status === 401) {
+          handleLogout();
+          openAuthModal('login');
+          throw new Error('Your session has expired. Please log in again.');
+        }
+
+        if (response.status === 402) {
+          let creditMsg = 'Insufficient credits to process this batch.';
+          try {
+            const data = await response.json();
+            if (data && data.message) creditMsg = data.message;
+          } catch {}
+          throw new Error(`💳 ${creditMsg}. Please check your credits balance or contact the administrator.`);
+        }
 
         if (!response.ok) {
           let errorMsg = `Server error (${response.status})`;
@@ -974,9 +2771,12 @@
         document.getElementById('previewFilename').textContent = currentFilename;
         document.getElementById('previewImg').src = currentBlobUrl;
 
+        // Refresh user profile so credit balance is updated immediately
+        refreshUserProfile();
+
       } catch (err) {
         console.error('[AutoPress] Error:', err);
-        showError(`Failed to fetch from ${API_BASE_URL}: ${err.message || 'Network error'}. Check browser console (F12) for details.`);
+        showError(err.message || 'Processing error. Check browser console for details.');
         generateBtn.disabled = false;
         renderSlots();
       } finally {
@@ -1005,8 +2805,14 @@
       document.body.removeChild(a);
     }
 
-    // Initial render
+    // Initial render & Auth check
     renderSlots();
+    updateHeaderAuthUI();
+    checkUrlTokens();
+    if (currentToken) {
+      refreshUserProfile();
+    }
+
   </script>
 </body>
 </html>

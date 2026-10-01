@@ -83,32 +83,32 @@ FONT_CANDIDATES = [
 
 FRONT_FIELDS = {
     "fullNameAmharic": {
-        "x": 1041, "y": 476, "width": 800, "height": 98,
+        "x": 1041, "y": 476, "width": 1440, "height": 110,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "fullNameEnglish": {
-        "x": 1039, "y": 597, "width": 800, "height": 126,
+        "x": 1039, "y": 597, "width": 1440, "height": 130,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "dobEthiopian": {
-        "x": 1041, "y": 806, "width": 800, "height": 103,
+        "x": 1041, "y": 806, "width": 1400, "height": 103,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "dobGregorian": {
-        "x": 1041, "y": 806, "width": 800, "height": 103,
+        "x": 1041, "y": 806, "width": 1400, "height": 103,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "genderAmharic": {
-        "x": 1039, "y": 965, "width": 800, "height": 103,
+        "x": 1039, "y": 965, "width": 1400, "height": 103,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "genderEnglish": {
-        "x": 1039, "y": 965, "width": 800, "height": 103,
+        "x": 1039, "y": 965, "width": 1400, "height": 103,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
@@ -118,17 +118,17 @@ FRONT_FIELDS = {
     },
 
     "issueDateAmharic": {
-        "x": 35, "y": 1016, "width": 80, "height": 329,
+        "x": 35, "y": 1016, "width": 80, "height": 380,
         "fontSize": 75, "rotation": 90, "align": "center", "type": "text"
     },
 
     "expiryDateAmharic": {
-        "x": 1036, "y": 1145, "width": 800, "height": 131,
+        "x": 1036, "y": 1145, "width": 1060, "height": 131,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "expiryDate": {
-        "x": 1036, "y": 1145, "width": 800, "height": 131,
+        "x": 1036, "y": 1145, "width": 1060, "height": 131,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
@@ -155,47 +155,47 @@ FRONT_FIELDS = {
 
 BACK_FIELDS = {
     "phoneNumber": {
-        "x": 60, "y": 170, "width": 700, "height": 105,
+        "x": 60, "y": 170, "width": 1040, "height": 105,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "nationalityAmharic": {
-        "x": 60, "y": 412, "width": 800, "height": 115,
+        "x": 60, "y": 412, "width": 1040, "height": 115,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "nationalityEnglish": {
-        "x": 60, "y": 412, "width": 800, "height": 115,
+        "x": 60, "y": 412, "width": 1040, "height": 115,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "text"
     },
 
     "regionAmharic": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
     "regionEnglish": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
     "subcityAmharic": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
     "subcityEnglish": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
     "woredaAmharic": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
     "woredaEnglish": {
-        "x": 60, "y": 608, "width": 700, "height": 82,
+        "x": 60, "y": 608, "width": 1040, "height": 82,
         "fontSize": 75, "rotation": 0, "align": "left", "type": "address_stack"
     },
 
@@ -476,6 +476,51 @@ def get_fitting_font_size(
     return minimum_size
 
 
+def wrap_multiscript_text_to_lines(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font_size: int,
+    max_width: int
+) -> List[str]:
+    """
+    Wraps text into multiple lines so that each line fits within max_width
+    without shrinking font size. Breaks cleanly across words.
+    """
+    text = text.strip()
+    if not text:
+        return []
+
+    tw, _ = measure_multiscript_text(draw, text, font_size)
+    if tw <= max_width:
+        return [text]
+
+    words = text.split()
+    if not words:
+        return [text]
+
+    lines = []
+    current_line = []
+
+    for word in words:
+        test_line = " ".join(current_line + [word]) if current_line else word
+        w, _ = measure_multiscript_text(draw, test_line, font_size)
+        if w <= max_width:
+            current_line.append(word)
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+                current_line = [word]
+            else:
+                # Single word wider than max_width
+                lines.append(word)
+                current_line = []
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    return lines
+
+
 def get_fitting_font(
     draw: ImageDraw.ImageDraw,
     text: str,
@@ -579,17 +624,18 @@ def draw_address_stack(
       [group gap]
       woredaAmharic / woredaEnglish
 
-    Within each pair lines are tightly packed (small inner gap).
-    Between groups there is a larger separator gap.
+    For Woreda: when text is long, wraps onto multiple lines at full font size
+    without shrinking text size.
     """
     draw = ImageDraw.Draw(image)
 
     start_x   = 60
     start_y   = 608
-    max_width = 700
+    max_width = 1080  # ample width before QR code at x=1167
     font_size = 75
-    inner_gap = 10   # px between Amharic and English within the same field
-    group_gap = 50   # px between Region / Subcity / Woreda groups
+    inner_gap = 8    # px between Amharic and English within the same field
+    group_gap = 36   # px between Region / Subcity / Woreda groups
+    line_gap  = 4    # px between wrapped lines of the same field
 
     current_y = start_y
 
@@ -598,19 +644,34 @@ def draw_address_stack(
         if group_index > 0:
             current_y += group_gap
 
+        is_woreda_group = (amharic_key == "woredaAmharic")
+
         for field_name in (amharic_key, english_key):
             value = get_field_value(card_data, field_name)
             if not value:
                 continue
 
-            fit_size = get_fitting_font_size(
-                draw, value, max_width, font_size, font_size
-            )
+            if is_woreda_group:
+                # Requirement: On woreda, create new lines for long text without adjusting font size
+                lines = wrap_multiscript_text_to_lines(draw, value, font_size, max_width)
+                for line_idx, line_text in enumerate(lines):
+                    fit_size = font_size
+                    tw, th = measure_multiscript_text(draw, line_text, fit_size)
+                    # If a single word on this line exceeds max_width, gently scale only as last resort
+                    if tw > max_width:
+                        fit_size = get_fitting_font_size(draw, line_text, max_width, font_size, font_size)
+                        tw, th = measure_multiscript_text(draw, line_text, fit_size)
 
-            tw, th = measure_multiscript_text(draw, value, fit_size)
-            render_multiscript_text(draw, start_x, current_y, value, fit_size, fill=(0, 0, 0, 255))
-
-            current_y += th + inner_gap
+                    render_multiscript_text(draw, start_x, current_y, line_text, fit_size, fill=(0, 0, 0, 255))
+                    current_y += th + (line_gap if line_idx < len(lines) - 1 else inner_gap)
+            else:
+                # Region / Subcity: comfortable fit with expanded width
+                fit_size = get_fitting_font_size(
+                    draw, value, max_width, font_size, font_size
+                )
+                tw, th = measure_multiscript_text(draw, value, fit_size)
+                render_multiscript_text(draw, start_x, current_y, value, fit_size, fill=(0, 0, 0, 255))
+                current_y += th + inner_gap
 
 
 # ============================================================

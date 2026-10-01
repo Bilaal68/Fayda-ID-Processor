@@ -1,8 +1,44 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from routes.fayda import fayda_bp
-# from routes.wedding import wedding_bp  ← commented out
+from routes.auth import auth_bp
+from routes.user import user_bp
+from routes.admin import admin_bp
+from database import init_db
+from models import UserModel, CreditLedgerModel
+from services.auth_service import hash_password
 import os
+
+# Initialize database schema
+init_db()
+
+# Bootstrap initial administrator account if none exists
+def bootstrap_admin():
+    try:
+        admin_email = os.environ.get("ADMIN_EMAIL", "admin@autopress.com").strip().lower()
+        admin_password = os.environ.get("ADMIN_PASSWORD", "Admin123456!").strip()
+        existing_admin = UserModel.get_by_email(admin_email)
+        if not existing_admin:
+            admin_user = UserModel.create(
+                email=admin_email,
+                password_hash=hash_password(admin_password),
+                full_name="System Administrator",
+                role="admin",
+                is_verified=True
+            )
+            if admin_user:
+                CreditLedgerModel.record_transaction(
+                    user_id=admin_user["id"],
+                    amount=1000,
+                    transaction_type="ADMIN_GRANT",
+                    reason="Initial system administrator allocation",
+                    admin_id=admin_user["id"]
+                )
+                print(f"✅ Initial admin account provisioned: {admin_email}")
+    except Exception as e:
+        print(f"⚠️ Admin bootstrap notice: {e}")
+
+bootstrap_admin()
 
 app = Flask(__name__, static_folder='static')
 
@@ -35,7 +71,10 @@ CORS(app, resources={
 # REGISTER BLUEPRINTS
 # ============================================================
 app.register_blueprint(fayda_bp)
-# app.register_blueprint(wedding_bp)  ← commented out
+app.register_blueprint(auth_bp)
+app.register_blueprint(user_bp)
+app.register_blueprint(admin_bp)
+
 
 # ============================================================
 # FORCE CORS HEADERS ON EVERY RESPONSE

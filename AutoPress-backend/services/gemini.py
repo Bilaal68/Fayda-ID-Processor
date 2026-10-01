@@ -573,8 +573,9 @@ def extract_from_pdf(pdf_file):
 
     # ── Step 3: Field coordinates ──
     PDF_FIELD_MAP = {
-        "fullNameEnglish":     {"x": 166, "y": 226, "w": 84,  "h": 18},
-        "fullNameAmharic":     {"x": 165, "y": 216, "w": 85,  "h": 15},
+        "fullNameEnglish":     {"x": 160, "y": 225, "w": 235, "h": 22},
+        "fullNameAmharic":     {"x": 160, "y": 213, "w": 235, "h": 20},
+        "nameBlock":           {"x": 160, "y": 210, "w": 235, "h": 40},
         "dobGregorian":        {"x": 53,  "y": 290, "w": 66,  "h": 11},
         "dobEthiopian":        {"x": 54,  "y": 280, "w": 54,  "h": 12},
         "genderAmharic":       {"x": 54,  "y": 312, "w": 32,  "h": 15},
@@ -662,6 +663,8 @@ Rules:
 - Return exact text as shown in each image
 - For Amharic fields: return the Amharic text exactly
 - For dates: keep the exact format shown
+- CRITICAL for fullNameEnglish & fullNameAmharic: Extract the FULL, COMPLETE full name (First, Father, Grandfather name) without truncating. NEVER cut off ending names or letters.
+- [Field: nameBlock] shows the complete Full Name region across the card. Use it to extract the entire full name without any cutoff.
 - CRITICAL for woredaEnglish: Extract the FULL, COMPLETE name of the Woreda without truncating (e.g. "Gasera", "Woreda 03", "Bole"). NEVER truncate with "..." (no ellipsis) and NEVER cut off ending letters like "ra" (return "Gasera", NEVER "Gase...").
 - CRITICAL for woredaAmharic: Extract the FULL, COMPLETE name of the Woreda in Amharic without truncating (e.g. "ጋሰራ", "ወረዳ 03", "ቦሌ"). NEVER truncate with "..." (no ellipsis) and NEVER cut off ending letters like "ራ" (return "ጋሰራ", NEVER "ጋሰ...").
 - [Field: woredaBlock] and [Field: addressBlock] show the entire Woreda and Address region. Use them to read the complete words without any cutoff.
