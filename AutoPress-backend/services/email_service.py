@@ -4,6 +4,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Tuple
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from dotenv import load_dotenv
+
+# Load .env so SMTP settings are always available
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'), override=False)
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "autopress-secret-key-production-change-me")
 serializer = URLSafeTimedSerializer(SECRET_KEY)

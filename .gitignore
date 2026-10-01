@@ -14,3 +14,9 @@ node_modules/
 # rembg ML models
 AutoPress-backend/models/rembg/models/
 AutoPress-backend/models/*.onnx
+
+# Firebase service account credentials
+*firebase*.json
+*serviceAccount*.json
+AutoPress-backend/*.json
+!AutoPress-backend/package*.json

@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+# Load .env FIRST — before any other imports read os.environ
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from routes.fayda import fayda_bp
@@ -7,7 +13,6 @@ from routes.admin import admin_bp
 from database import init_db
 from models import UserModel, CreditLedgerModel
 from services.auth_service import hash_password
-import os
 
 # Initialize database schema
 init_db()

@@ -17,6 +17,22 @@ def get_stats():
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def list_users():
+    # Sync any newly registered Firebase users into SQLite
+    try:
+        from services.firebase_service import fb_admin_auth
+        fb_page = fb_admin_auth.list_users(max_results=100)
+        for fu in fb_page.users:
+            if fu.email:
+                UserModel.create_or_sync_firebase_user(
+                    firebase_uid=fu.uid,
+                    email=fu.email,
+                    full_name=fu.display_name or fu.email.split('@')[0],
+                    is_verified=bool(fu.email_verified),
+                    role="user"
+                )
+    except Exception:
+        pass
+
     search = request.args.get('search', '').strip() or None
     limit = min(int(request.args.get('limit', 50)), 100)
     offset = max(int(request.args.get('offset', 0)), 0)
@@ -100,6 +116,85 @@ def update_user_status(user_id: int):
         'message': f'User status successfully updated to {new_status}.',
         'user_id': user_id,
         'new_status': new_status
+    }), 200
+
+
+@admin_bp.route('/users/<int:user_id>/role', methods=['PATCH', 'POST'])
+@admin_required
+def update_user_role(user_id: int):
+    data = request.get_json(silent=True) or {}
+    new_role = data.get('role', '').strip().lower()
+
+    if new_role not in ('user', 'admin'):
+        return jsonify({'status': 'error', 'error': 'Role must be either "user" or "admin".'}), 400
+
+    user = UserModel.get_by_id(user_id)
+    if not user:
+        return jsonify({'status': 'error', 'error': 'User not found.'}), 404
+
+    # Prevent current admin from demoting themselves
+    if user['id'] == g.current_user['id'] and new_role != 'admin':
+        return jsonify({'status': 'error', 'error': 'You cannot demote your own active admin account.'}), 400
+
+    success = UserModel.update_role(user_id, new_role)
+    if not success:
+        return jsonify({'status': 'error', 'error': 'Failed to update user role.'}), 500
+
+    return jsonify({
+        'status': 'success',
+        'message': f'User role successfully updated to {new_role}.',
+        'user_id': user_id,
+        'email': user['email'],
+        'new_role': new_role
+    }), 200
+
+
+@admin_bp.route('/users/promote-email', methods=['POST'])
+@admin_required
+def promote_user_by_email():
+    data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip().lower()
+    new_role = data.get('role', 'admin').strip().lower()
+
+    if not email:
+        return jsonify({'status': 'error', 'error': 'Email is required.'}), 400
+
+    if new_role not in ('user', 'admin'):
+        return jsonify({'status': 'error', 'error': 'Role must be either "user" or "admin".'}), 400
+
+    user = UserModel.get_by_email(email)
+    if not user:
+        # Check if registered in Firebase Auth and provision directly
+        try:
+            from services.firebase_service import fb_admin_auth
+            fb_user = fb_admin_auth.get_user_by_email(email)
+            if fb_user:
+                user = UserModel.create_or_sync_firebase_user(
+                    firebase_uid=fb_user.uid,
+                    email=fb_user.email,
+                    full_name=fb_user.display_name or fb_user.email.split('@')[0],
+                    is_verified=bool(fb_user.email_verified),
+                    role=new_role
+                )
+        except Exception:
+            pass
+
+    if not user:
+        return jsonify({'status': 'error', 'error': f'No account found with email "{email}". Please make sure they register first.'}), 404
+
+    if user['id'] == g.current_user['id'] and new_role != 'admin':
+        return jsonify({'status': 'error', 'error': 'You cannot demote your own active admin account.'}), 400
+
+    success = UserModel.update_role(user['id'], new_role)
+    if not success:
+        return jsonify({'status': 'error', 'error': 'Failed to update role.'}), 500
+
+    return jsonify({
+        'status': 'success',
+        'message': f'Successfully upgraded {user["email"]} to {new_role}.',
+        'user_id': user['id'],
+        'email': user['email'],
+        'new_role': new_role
     }), 200
 
 

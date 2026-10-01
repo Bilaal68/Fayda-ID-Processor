@@ -221,22 +221,49 @@ class TestAutoPressFeatures(unittest.TestCase):
         self.assertEqual(res_no_auth.status_code, 401)
         print("✅ Anonymous processing request rejected with 401 Unauthorized")
 
-        # 2. Authenticated user with 0 credits must be rejected with 402
-        email = f"zerocredit_{int(time.time()*1000)}@autopress.com"
+        # 2. Unverified user must be rejected with 403 (email not verified)
+        unverified_email = f"unverified_{int(time.time()*1000)}@autopress.com"
         reg = self.client.post('/api/auth/register', json={
-            "full_name": "Zero Balance User",
-            "email": email,
+            "full_name": "Unverified User",
+            "email": unverified_email,
             "password": "Password123!",
             "confirm_password": "Password123!"
         })
-        token = reg.get_json()['token']
+        unverified_token = reg.get_json()['token']
+        res_unverified = self.client.post(
+            '/process-pdf-template',
+            headers={'Authorization': f'Bearer {unverified_token}'},
+            data={'pdf_1': (io.BytesIO(b'%PDF-1.4'), 'test.pdf', 'application/pdf')}
+        )
+        self.assertEqual(res_unverified.status_code, 403)
+        resp_data = res_unverified.get_json()
+        self.assertEqual(resp_data.get('code'), 'EMAIL_NOT_VERIFIED')
+        print("✅ Unverified user rejected with 403 EMAIL_NOT_VERIFIED")
+
+        # 3. Verified user with 0 credits must be rejected with 402
+        verified_email = f"zerocredit_{int(time.time()*1000)}@autopress.com"
+        reg2 = self.client.post('/api/auth/register', json={
+            "full_name": "Zero Balance User",
+            "email": verified_email,
+            "password": "Password123!",
+            "confirm_password": "Password123!"
+        })
+        verified_token = reg2.get_json()['token']
+        user_id_2 = reg2.get_json()['user']['id']
+
+        # Verify the email so the user passes the verification gate
+        from services.email_service import generate_verification_token
+        verify_tok = generate_verification_token(verified_email)
+        self.client.post('/api/auth/verify-email', json={"token": verify_tok})
+
         res_zero_credits = self.client.post(
             '/process-pdf-template',
-            headers={'Authorization': f'Bearer {token}'},
+            headers={'Authorization': f'Bearer {verified_token}'},
             data={'pdf_1': (io.BytesIO(b'%PDF-1.4'), 'test.pdf', 'application/pdf')}
         )
         self.assertEqual(res_zero_credits.status_code, 402)
-        print("✅ Zero-credit processing request rejected with 402 Payment Required")
+        print("✅ Verified user with 0 credits rejected with 402 Payment Required")
+
 
 if __name__ == '__main__':
     unittest.main()

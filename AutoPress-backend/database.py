@@ -61,16 +61,24 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT UNIQUE NOT NULL COLLATE NOCASE,
-                password_hash TEXT NOT NULL,
+                password_hash TEXT DEFAULT '',
                 full_name TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'user',
                 status TEXT NOT NULL DEFAULT 'active',
                 is_verified INTEGER NOT NULL DEFAULT 0,
+                firebase_uid TEXT UNIQUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+
+        # Migration: ensure firebase_uid exists on existing users table
+        cursor.execute("PRAGMA table_info(users);")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "firebase_uid" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN firebase_uid TEXT;")
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);")
 
         # 2. Processing Records Table
         cursor.execute("""

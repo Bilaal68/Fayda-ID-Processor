@@ -12,17 +12,34 @@ class UserModel:
         role: str = "user",
         is_verified: bool = False
     ) -> Optional[Dict[str, Any]]:
-        with db_session() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                INSERT INTO users (email, password_hash, full_name, role, is_verified, status)
-                VALUES (?, ?, ?, ?, ?, 'active')
-                """,
-                (email.strip().lower(), password_hash, full_name.strip(), role, 1 if is_verified else 0)
-            )
-            user_id = cursor.lastrowid
-        return UserModel.get_by_id(user_id)
+        normalized_email = email.strip().lower()
+        try:
+            with db_session() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO users (email, password_hash, full_name, role, is_verified, status)
+                    VALUES (?, ?, ?, ?, ?, 'active')
+                    """,
+                    (normalized_email, password_hash, full_name.strip(), role, 1 if is_verified else 0)
+                )
+                user_id = cursor.lastrowid
+
+            if user_id and role != "admin":
+                import os
+                default_credits = int(os.environ.get("DEFAULT_SIGNUP_CREDITS", 2))
+                if default_credits > 0:
+                    CreditLedgerModel.record_transaction(
+                        user_id=user_id,
+                        amount=default_credits,
+                        transaction_type="ADMIN_GRANT",
+                        reason=f"Welcome bonus ({default_credits} credits on registration)"
+                    )
+
+            return UserModel.get_by_id(user_id)
+        except sqlite3.IntegrityError:
+            return None
+
 
 
     @staticmethod
@@ -34,12 +51,128 @@ class UserModel:
             return UserModel.to_dict(row) if row else None
 
     @staticmethod
+    def get_by_firebase_uid(firebase_uid: str) -> Optional[Dict[str, Any]]:
+        if not firebase_uid:
+            return None
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE firebase_uid = ?", (firebase_uid.strip(),))
+            row = cursor.fetchone()
+            return UserModel.to_dict(row) if row else None
+
+    @staticmethod
     def get_by_email(email: str) -> Optional[Dict[str, Any]]:
         with db_session() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE email = ? COLLATE NOCASE", (email.strip().lower(),))
             row = cursor.fetchone()
             return UserModel.to_dict(row) if row else None
+
+    @staticmethod
+    def link_firebase_uid(user_id: int, firebase_uid: str) -> bool:
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET firebase_uid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (firebase_uid.strip(), user_id)
+            )
+            return cursor.rowcount > 0
+
+    @staticmethod
+    def create_or_sync_firebase_user(
+        firebase_uid: str,
+        email: str,
+        full_name: str = "",
+        is_verified: bool = False,
+        role: str = "user"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Idempotently resolves or provisions an AutoPress user for a Firebase UID:
+        1. Checks if user already exists by firebase_uid.
+        2. If not, checks if an existing user matches by email -> links firebase_uid.
+        3. If no existing user, creates a new user record.
+        """
+        normalized_email = email.strip().lower()
+        clean_uid = firebase_uid.strip()
+        display_name = full_name.strip() or normalized_email.split("@")[0]
+
+        # 1. Existing by firebase_uid
+        user = UserModel.get_by_firebase_uid(clean_uid)
+        if user:
+            needs_update = False
+            updates = {}
+            # Always sync role upward (user→admin), never demote
+            if role == "admin" and user.get("role") != "admin":
+                updates["role"] = "admin"
+                needs_update = True
+            # Sync verification status if changed
+            if is_verified and not user.get("is_verified"):
+                updates["is_verified"] = 1
+                needs_update = True
+            if needs_update:
+                with db_session() as conn:
+                    for col, val in updates.items():
+                        conn.execute(
+                            f"UPDATE users SET {col} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                            (val, user["id"])
+                        )
+            return UserModel.get_by_id(user["id"])
+
+        # 2. Existing by email (linking legacy accounts)
+        user = UserModel.get_by_email(normalized_email)
+        if user:
+            UserModel.link_firebase_uid(user["id"], clean_uid)
+            # Sync role upward
+            if role == "admin" and user.get("role") != "admin":
+                with db_session() as conn:
+                    conn.execute(
+                        "UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                        (user["id"],)
+                    )
+            if is_verified and not user.get("is_verified"):
+                UserModel.update_verification(user["id"], True)
+            return UserModel.get_by_id(user["id"])
+
+        # 3. Create fresh user
+        try:
+            with db_session() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO users (email, password_hash, full_name, role, is_verified, status, firebase_uid)
+                    VALUES (?, '', ?, ?, ?, 'active', ?)
+                    """,
+                    (normalized_email, display_name, role, 1 if is_verified else 0, clean_uid)
+                )
+                user_id = cursor.lastrowid
+
+            if user_id and role != "admin":
+                import os
+                default_credits = int(os.environ.get("DEFAULT_SIGNUP_CREDITS", 2))
+                if default_credits > 0:
+                    CreditLedgerModel.record_transaction(
+                        user_id=user_id,
+                        amount=default_credits,
+                        transaction_type="ADMIN_GRANT",
+                        reason=f"Welcome bonus ({default_credits} credits on registration)"
+                    )
+
+            return UserModel.get_by_id(user_id)
+        except sqlite3.IntegrityError:
+            # Handle potential concurrent insert
+            return UserModel.get_by_firebase_uid(clean_uid) or UserModel.get_by_email(normalized_email)
+
+    @staticmethod
+    def update_role(user_id: int, role: str) -> bool:
+        if role not in ("user", "admin"):
+            return False
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (role, user_id)
+            )
+            return cursor.rowcount > 0
 
     @staticmethod
     def update_status(user_id: int, status: str) -> bool:
@@ -113,6 +246,7 @@ class UserModel:
             "role": row["role"],
             "status": row["status"],
             "is_verified": bool(row["is_verified"]),
+            "firebase_uid": row["firebase_uid"] if "firebase_uid" in row.keys() else None,
             "created_at": str(row["created_at"]),
             "updated_at": str(row["updated_at"]),
             "last_activity": str(row["last_activity"]) if row["last_activity"] else None,

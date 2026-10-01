@@ -101,8 +101,11 @@ def extract_image_data():
             email = verify_token(request)
             print(f"✅ User verified: {email}")
         except Exception as e:
-            print(f"❌ Token verification failed: {e}")
-            return jsonify({'error': str(e)}), 401
+            err_msg = str(e)
+            print(f"❌ Token verification failed: {err_msg}")
+            if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+                return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+            return jsonify({'error': err_msg}), 401
 
         # Step 2: Validate uploaded files
         if 'front_image' not in request.files:
@@ -183,7 +186,10 @@ def generate_final_id():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     uid = _resolve_user_id(user_id)
     if not uid:
@@ -283,7 +289,10 @@ def add_to_queue():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     # Step 2 — Parse body
     body = request.get_json()
@@ -380,7 +389,10 @@ def queue_status(job_id):
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     # Step 2 — Get job from Firestore
     doc = db.collection('print_queue').document(job_id).get()
@@ -415,7 +427,10 @@ def my_jobs():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     # Step 2 — Get all jobs for this user (sorted in Python)
     try:
@@ -460,7 +475,10 @@ def process_queue():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     # Step 2 — Get all pending jobs for this user (sorted in Python)
     try:
@@ -574,7 +592,10 @@ def process_pdf_template():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     uid = _resolve_user_id(user_id)
     if not uid:
@@ -714,7 +735,10 @@ def process_photo():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
 
     # Step 2 — Parse body
     body = request.get_json()
@@ -823,7 +847,10 @@ def submit_payment_request():
     try:
         user_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
     
     data = request.json
     
@@ -876,7 +903,10 @@ def admin_list_payment_requests():
     try:
         admin_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
     
     if not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
@@ -897,7 +927,10 @@ def admin_list_users():
     try:
         admin_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
     
     if not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
@@ -918,7 +951,10 @@ def admin_approve_payment_request():
     try:
         admin_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
     
     if not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
@@ -960,7 +996,10 @@ def admin_reject_payment_request():
     try:
         admin_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
     
     if not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
@@ -987,35 +1026,50 @@ def admin_reject_payment_request():
 
 @fayda_bp.route('/admin/add-credits', methods=['POST'])
 def admin_add_credits_to_user():
-    """Admin manually adds credits to a user"""
+    """Admin manually adds credits to a user. Only admin can call this."""
     try:
         admin_id = verify_token(request)
     except Exception as e:
-        return jsonify({'error': str(e)}), 401
-    
+        err_msg = str(e)
+        if err_msg.startswith("EMAIL_NOT_VERIFIED:"):
+            return jsonify({'error': err_msg, 'code': 'EMAIL_NOT_VERIFIED'}), 403
+        return jsonify({'error': err_msg}), 401
+
     if not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
-    
-    data = request.json
+
+    data = request.json or {}
     user_id = data.get('user_id')
     credits = data.get('credits')
-    
-    if not user_id or not credits or credits < 1:
-        return jsonify({'error': 'Invalid user_id or credits amount'}), 400
-    
-    # Add credits to user
-    user_ref = db.collection('users').document(user_id)
-    user = user_ref.get()
-    
-    if not user.exists:
+    reason = data.get('reason', 'Admin credit grant')
+
+    if not user_id or not isinstance(credits, int) or credits < 1:
+        return jsonify({'error': 'Invalid user_id or credits amount (must be integer >= 1)'}), 400
+
+    # Resolve target user in SQLite
+    target_user = UserModel.get_by_id(int(user_id)) if str(user_id).isdigit() else UserModel.get_by_email(str(user_id))
+    if not target_user:
         return jsonify({'error': 'User not found'}), 404
-    
-    current_credits = user.to_dict().get('credits', 0)
-    user_ref.update({
-        'credits': current_credits + credits,
-        'updated_at': datetime.now(timezone.utc).isoformat()
-    })
-    
-    print(f"✅ Admin {admin_id} added {credits} credits to user {user_id}")
-    
-    return jsonify({'status': 'success', 'message': f'Added {credits} credits to user'}), 200
+
+    # Record ADMIN_GRANT transaction in credit ledger
+    success, message, new_balance = CreditLedgerModel.record_transaction(
+        user_id=target_user['id'],
+        amount=credits,
+        transaction_type='ADMIN_GRANT',
+        reason=reason,
+        admin_id=admin_id
+    )
+
+    if not success:
+        return jsonify({'error': message}), 500
+
+    print(f"✅ Admin [{admin_id}] granted {credits} credits to user [{target_user['id']}] {target_user['email']} | new balance: {new_balance}")
+
+    return jsonify({
+        'status': 'success',
+        'message': f'Added {credits} credits to {target_user["email"]}',
+        'user_id': target_user['id'],
+        'email': target_user['email'],
+        'credits_added': credits,
+        'new_balance': new_balance
+    }), 200

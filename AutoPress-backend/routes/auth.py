@@ -15,10 +15,9 @@ from services.email_service import (
     send_verification_email,
     send_password_reset_email
 )
+from services.email_validator import validate_real_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
-
-EMAIL_REGEX = re.compile(r"^[\w\.\+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-\.]+$")
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -30,8 +29,10 @@ def register():
 
     if not full_name:
         return jsonify({'status': 'error', 'error': 'Full name is required.'}), 400
-    if not email or not EMAIL_REGEX.match(email):
-        return jsonify({'status': 'error', 'error': 'A valid email address is required.'}), 400
+    
+    is_valid, err_msg = validate_real_email(email)
+    if not is_valid:
+        return jsonify({'status': 'error', 'error': err_msg}), 400
     if not password or len(password) < 6:
         return jsonify({'status': 'error', 'error': 'Password must be at least 6 characters long.'}), 400
     if password != confirm_password:
@@ -51,7 +52,10 @@ def register():
     )
 
     if not user:
+        if UserModel.get_by_email(email):
+            return jsonify({'status': 'error', 'error': 'An account with this email already exists.'}), 409
         return jsonify({'status': 'error', 'error': 'Failed to create account. Please try again.'}), 500
+
 
     token = generate_verification_token(email)
     send_verification_email(email, token)
@@ -131,7 +135,44 @@ def get_me():
             'full_name': user['full_name'],
             'role': user['role'],
             'status': user['status'],
-            'is_verified': user['is_verified'],
+            'is_verified': bool(user.get('is_verified')),
+            'firebase_uid': user.get('firebase_uid'),
+            'current_credits': stats['current_credits'],
+            'total_credits_received': stats['total_credits_received'],
+            'total_credits_used': stats['total_credits_used']
+        }
+    }), 200
+
+
+@auth_bp.route('/sync', methods=['POST', 'GET'])
+@login_required
+def sync_user():
+    """
+    Sync endpoint called immediately after Firebase client login/registration.
+    The Firebase token in Authorization header has already verified & provisioned the user
+    in get_current_user_from_request().
+    """
+    user = g.current_user
+    data = request.get_json(silent=True) or {}
+    updated_name = data.get('full_name', '').strip()
+    if updated_name and updated_name != user.get('full_name'):
+        from database import db_session
+        with db_session() as conn:
+            conn.execute("UPDATE users SET full_name = ? WHERE id = ?", (updated_name, user['id']))
+        user = UserModel.get_by_id(user['id'])
+
+    stats = CreditLedgerModel.get_user_stats(user['id'])
+    return jsonify({
+        'status': 'success',
+        'message': 'User synced successfully.',
+        'user': {
+            'id': user['id'],
+            'email': user['email'],
+            'full_name': user['full_name'],
+            'role': user['role'],
+            'status': user['status'],
+            'is_verified': bool(user.get('is_verified')),
+            'firebase_uid': user.get('firebase_uid'),
             'current_credits': stats['current_credits'],
             'total_credits_received': stats['total_credits_received'],
             'total_credits_used': stats['total_credits_used']

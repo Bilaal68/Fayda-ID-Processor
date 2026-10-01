@@ -39,9 +39,15 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, Exception):
         return None
 
+from services.firebase_service import verify_token as verify_firebase_id_token
+
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@autopress.com").strip().lower()
+
 def get_current_user_from_request() -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
-    Extracts Bearer token from Authorization header or cookie, verifies user in DB.
+    Extracts Bearer token from Authorization header or cookie.
+    Verifies Firebase ID token first, maps to SQLite user, and auto-syncs.
+    Falls back to legacy JWT token for seamless backward compatibility.
     Returns (user_dict, error_message).
     """
     auth_header = request.headers.get("Authorization", "")
@@ -56,25 +62,52 @@ def get_current_user_from_request() -> Tuple[Optional[Dict[str, Any]], Optional[
     if not token:
         return None, "Authentication required. Please provide a valid token."
 
+    # 1. Primary: Verify Firebase ID Token
+    fb_decoded, fb_err = verify_firebase_id_token(token)
+    if fb_decoded:
+        fb_uid = fb_decoded.get("uid") or fb_decoded.get("sub")
+        fb_email = fb_decoded.get("email", "").strip().lower()
+        is_verified = bool(fb_decoded.get("email_verified", False))
+        display_name = fb_decoded.get("name") or fb_email.split("@")[0]
+
+        if not fb_uid or not fb_email:
+            return None, "Invalid Firebase token payload: missing UID or email."
+
+        # Auto-promote configured admin email
+        default_role = "admin" if (ADMIN_EMAIL and fb_email == ADMIN_EMAIL) else "user"
+
+        user = UserModel.create_or_sync_firebase_user(
+            firebase_uid=fb_uid,
+            email=fb_email,
+            full_name=display_name,
+            is_verified=is_verified,
+            role=default_role
+        )
+
+        if not user:
+            return None, "Could not resolve or create user account for this Firebase ID."
+
+        if user.get("status") == "suspended":
+            return None, "Account is suspended. Please contact the administrator."
+
+        UserModel.update_last_activity(user["id"])
+        return user, None
+
+    # 2. Secondary: Fallback to internal access token (for test suite or legacy sessions)
     payload = decode_access_token(token)
-    if not payload or not payload.get("sub"):
-        return None, "Invalid or expired authentication token. Please log in again."
+    if payload and payload.get("sub"):
+        try:
+            user_id = int(payload["sub"])
+            user = UserModel.get_by_id(user_id)
+            if user:
+                if user.get("status") == "suspended":
+                    return None, "Account is suspended. Please contact the administrator."
+                UserModel.update_last_activity(user["id"])
+                return user, None
+        except (ValueError, TypeError):
+            pass
 
-    try:
-        user_id = int(payload["sub"])
-    except (ValueError, TypeError):
-        return None, "Invalid user identifier in token."
-
-    user = UserModel.get_by_id(user_id)
-    if not user:
-        return None, "User account not found."
-
-    if user.get("status") == "suspended":
-        return None, "Account is suspended. Please contact the administrator."
-
-    # Update last activity timestamp
-    UserModel.update_last_activity(user["id"])
-    return user, None
+    return None, fb_err or "Invalid or expired authentication token. Please log in again."
 
 def login_required(f):
     @wraps(f)
