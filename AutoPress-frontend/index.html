@@ -936,56 +936,6 @@
       border-color: var(--border-strong);
     }
 
-    /* VIP Telegram button */
-    .btn-telegram {
-      background: #0088cc;
-      color: #ffffff;
-      border: none;
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.15s, transform 0.1s;
-    }
-
-    .btn-telegram:hover {
-      background: #0077b5;
-      transform: translateY(-1px);
-    }
-
-    .btn-telegram:active {
-      transform: translateY(0);
-    }
-
-    /* Telegram VIP Button */
-    .btn-vip {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-      transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-    }
-
-    .btn-vip:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
-    }
-
     /* Auth & Credit Controls in Header */
     .credit-pill {
       display: inline-flex;
@@ -1545,7 +1495,7 @@
 
 
       <div class="landing-actions">
-        <button class="btn-primary" onclick="openAuthModal('register')" style="padding: 12px 24px; font-size: 0.925rem;">
+        <button class="btn-primary" onclick="openAuthModal('register')" style="padding: 13px 26px; font-size: 0.95rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="8.5" cy="7" r="4"></circle>
@@ -1554,7 +1504,7 @@
           </svg>
           Get Started (2 Free Credits)
         </button>
-        <button class="btn-secondary" onclick="openAuthModal('login')" style="padding: 12px 20px; font-size: 0.925rem;">
+        <button class="btn-secondary" onclick="openAuthModal('login')" style="padding: 13px 24px; font-size: 0.95rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
             <polyline points="10 17 15 12 10 7"></polyline>
@@ -1562,12 +1512,6 @@
           </svg>
           Sign In
         </button>
-        <a href="https://t.me/+El9sLg_wwF0yNzVk" target="_blank" rel="noopener" class="btn-vip">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.943z"/>
-          </svg>
-          Join VIP Group
-        </a>
       </div>
 
       <!-- Highlights Strip -->
@@ -1590,96 +1534,71 @@
         </div>
       </div>
 
-      <!-- Support, VIP Community & Bank Account Section -->
-      <div id="landingContactSection" style="margin-top: 1rem;">
+      <!-- Support & Payment Section (2 Visible, High-Contrast Cards) -->
+      <div id="landingContactSection" style="margin-top: 1.5rem;">
         <div class="landing-section-header">
           <span class="landing-section-pill">Support & Payments</span>
-          <h2 class="landing-section-title">Support, VIP Community & Bank Top-Up</h2>
+          <h2 class="landing-section-title">Direct Support & Credit Top-Up</h2>
         </div>
 
-        <div class="landing-contact-grid">
-          <!-- Card 1: Direct Contact & Telegram -->
-          <div class="landing-contact-card">
+        <div class="landing-contact-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+          <!-- Card 1: Direct Phone Call Support -->
+          <div class="landing-contact-card" style="padding: 26px;">
             <div>
-              <span class="contact-card-badge tag-blue">Direct Contact</span>
-              <div class="landing-feature-title" style="font-size: 1.05rem; margin-bottom: 12px;">
-                Phone & Telegram Support
+              <span class="contact-card-badge tag-blue">📞 Phone & Direct Support</span>
+              <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 8px 0 6px 0;">
+                Direct Call & Assistance
               </div>
-              
-              <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-                <a href="tel:+251978591099" style="display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 10px 12px; background: var(--card-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
-                  <span style="font-size: 1.1rem;">📞</span>
-                  <span>+251 978 591 099</span>
-                </a>
-                <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; color: #818cf8; text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 10px 12px; background: var(--card-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.943z"/>
-                  </svg>
-                  <span>@Oronymuos (Telegram)</span>
-                </a>
-              </div>
-            </div>
-            <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" class="btn-telegram">
-              Message on Telegram &rarr;
-            </a>
-          </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px;">
+                Call or SMS directly for instant account activation, printer setup help, or questions.
+              </p>
 
-          <!-- Card 2: VIP Paid Telegram Group -->
-          <div class="landing-contact-card featured">
-            <div>
-              <span class="contact-card-badge tag-yellow">VIP Group</span>
-              <div class="landing-feature-title" style="font-size: 1.05rem; margin-bottom: 12px;">
-                Exclusive Telegram Channel
-              </div>
-
-              <div style="background: var(--card-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
-                <div style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.6;">
-                  &bull; Instant credit top-up priority<br>
-                  &bull; Custom printer & tray calibration<br>
-                  &bull; Exclusive updates & templates
+              <div style="background: var(--card-subtle); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 0.725rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 4px;">Phone Number</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #a5b4fc; letter-spacing: 0.03em;">
+                  +251 978 591 099
                 </div>
               </div>
             </div>
-            <a href="https://t.me/+El9sLg_wwF0yNzVk" target="_blank" rel="noopener" class="btn-vip" style="width: 100%; justify-content: center;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.943z"/>
-              </svg>
-              Join VIP Telegram Group &rarr;
+
+            <a href="tel:+251978591099" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.9rem;">
+              📞 Call Now: +251 978 591 099
             </a>
           </div>
 
-          <!-- Card 3: Bank Transfer Details (CBE) -->
-          <div class="landing-contact-card">
+          <!-- Card 2: Commercial Bank of Ethiopia (CBE) Details -->
+          <div class="landing-contact-card featured" style="padding: 26px;">
             <div>
-              <span class="contact-card-badge tag-green">Payment / Top-Up</span>
-              <div class="landing-feature-title" style="font-size: 1.05rem; margin-bottom: 6px;">
-                Commercial Bank of Ethiopia
+              <span class="contact-card-badge tag-green">🏦 Bank Payment Details</span>
+              <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0;">
+                Commercial Bank of Ethiopia (CBE)
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
-                Account Name: <strong style="color: var(--text-main);">Bilal Mohamed Hussein</strong>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                Account Name: <strong style="color: var(--text-main); font-size: 0.95rem;">Bilal Mohamed Hussein</strong>
               </div>
 
               <!-- Bank Account Copy Box -->
-              <div class="bank-account-box">
+              <div class="bank-account-box" style="padding: 14px 16px; margin-bottom: 14px;">
                 <div>
-                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 2px;">CBE Account Number</div>
-                  <div class="bank-account-num" id="cbeAccountDisplay">1000624900891</div>
+                  <div style="font-size: 0.725rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 2px;">CBE Account Number</div>
+                  <div class="bank-account-num" id="cbeAccountDisplay" style="font-size: 1.2rem; font-weight: 800; letter-spacing: 0.05em;">1000624900891</div>
                 </div>
-                <button type="button" class="copy-account-btn" id="cbeCopyBtn" onclick="copyBankAccount('1000624900891', 'cbeCopyBtn')">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <button type="button" class="copy-account-btn" id="cbeCopyBtn" onclick="copyBankAccount('1000624900891', 'cbeCopyBtn')" style="padding: 8px 14px; font-size: 0.825rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                   </svg>
-                  <span>Copy</span>
+                  <span>Copy Number</span>
                 </button>
               </div>
 
-              <div style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 14px;">
-                💡 <strong>How to get credits:</strong> Transfer your payment to this CBE account, then forward your transaction confirmation to Telegram <strong style="color: #818cf8;">@Oronymuos</strong> or SMS <strong style="color: var(--text-main);">+251978591099</strong>.
+              <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: var(--radius-md); padding: 10px 12px;">
+                💡 <strong>How to recharge:</strong> Transfer to the CBE account above, then call or SMS <strong style="color: var(--text-main);">+251978591099</strong> with your reference for instant credit activation.
               </div>
             </div>
-            <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.825rem;">
-              Send Proof to Telegram &rarr;
+
+            <a href="tel:+251978591099" class="btn-secondary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem;">
+              Call / SMS for Recharge Confirmation &rarr;
             </a>
           </div>
         </div>
@@ -1840,15 +1759,9 @@
           High-accuracy 300 DPI Fayda ID batch card printing suite.
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 0.775rem;">
-        <a href="tel:+251978591099" style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 5px;">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 0.8rem;">
+        <a href="tel:+251978591099" style="color: #a5b4fc; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 600;">
           <span>📞</span> +251 978 591 099
-        </a>
-        <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" style="color: #818cf8; text-decoration: none; display: flex; align-items: center; gap: 5px;">
-          <span>💬</span> @Oronymuos
-        </a>
-        <a href="https://t.me/+El9sLg_wwF0yNzVk" target="_blank" rel="noopener" style="color: #fbbf24; text-decoration: none; display: flex; align-items: center; gap: 5px;">
-          <span>⭐</span> VIP Telegram Group
         </a>
       </div>
     </div>
@@ -2036,11 +1949,11 @@
                 ⚡ Need More Credits?
               </div>
               <div style="font-size: 0.775rem; color: var(--text-muted);">
-                Transfer via CBE: <strong style="color:var(--text-main);">1000624900891</strong> (Bilal Mohamed Hussein) &bull; Send receipt to Telegram: <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" style="color: #818cf8; text-decoration: underline;">@Oronymuos</a> or Call: <strong style="color:var(--text-main);">+251978591099</strong>
+                Transfer via CBE: <strong style="color:var(--text-main);">1000624900891</strong> (Bilal Mohamed Hussein) &bull; Call or SMS: <strong style="color:var(--text-main);">+251 978 591 099</strong> for instant activation.
               </div>
             </div>
-            <a href="https://t.me/Oronymuos" target="_blank" rel="noopener" class="btn-secondary" style="font-size: 0.75rem; padding: 6px 12px; white-space: nowrap;">
-              Contact Admin &rarr;
+            <a href="tel:+251978591099" class="btn-secondary" style="font-size: 0.75rem; padding: 6px 12px; white-space: nowrap;">
+              📞 Call: +251 978 591 099
             </a>
           </div>
 
