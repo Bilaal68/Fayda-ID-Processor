@@ -848,92 +848,40 @@
       line-height: 1.55;
     }
 
-    /* Contact & Payment Cards Grid */
-    .landing-contact-grid {
+    /* About & Features Grid */
+    .landing-features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
       text-align: left;
       margin-bottom: 3.5rem;
     }
 
-    .landing-contact-card {
+    .landing-feature-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
-      padding: 24px;
+      padding: 26px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       position: relative;
       transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
     }
 
-    .landing-contact-card:hover {
+    .landing-feature-card:hover {
       border-color: var(--border-strong);
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
 
-    .landing-contact-card.featured {
-      border-color: var(--primary-border);
-      background: linear-gradient(180deg, var(--card) 0%, rgba(79, 70, 229, 0.06) 100%);
-    }
-
-    .contact-card-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 3px 8px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-      width: fit-content;
-    }
-
-    /* Bank Account Box */
-    .bank-account-box {
-      background: var(--card-subtle);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      margin: 14px 0 12px 0;
+    .feature-card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .bank-account-num {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fbbf24;
-      letter-spacing: 0.04em;
-    }
-
-    .copy-account-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.775rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-
-    .copy-account-btn:hover {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: var(--border-strong);
+      justify-content: center;
+      margin-bottom: 6px;
     }
 
     /* Auth & Credit Controls in Header */
@@ -1292,8 +1240,7 @@
       }
 
       /* Landing */
-      .landing-features-grid,
-      .landing-contact-grid {
+      .landing-features-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
       }
@@ -1303,15 +1250,6 @@
       }
       .landing-section-title {
         font-size: 1.4rem;
-      }
-      .bank-account-box {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      .bank-account-box .copy-account-btn {
-        width: 100%;
-        justify-content: center;
       }
       .landing-cta-banner {
         flex-direction: column;
@@ -1390,13 +1328,322 @@
         border-radius: var(--radius-md);
       }
     }
+
+    /* ==========================================
+       FULL-PAGE ADMIN DASHBOARD STYLES
+       ========================================== */
+    .admin-app-root {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #030712;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: inherit;
+      color: var(--text-main);
+    }
+
+    .admin-app-topbar {
+      height: 62px;
+      background: rgba(11, 15, 25, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .admin-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
+    }
+
+    .admin-brand-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-badge {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .admin-brand-subtitle {
+      font-size: 0.725rem;
+      color: var(--text-dim);
+    }
+
+    .admin-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-return-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #334155;
+      color: var(--text-main);
+      padding: 7px 14px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .admin-return-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #64748b;
+      color: #fff;
+    }
+
+    .admin-profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1e293b;
+      padding: 5px 12px;
+      border-radius: 9999px;
+    }
+
+    .admin-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    .admin-app-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      height: calc(100vh - 62px);
+    }
+
+    .admin-sidebar {
+      width: 260px;
+      background: #080d1a;
+      border-right: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.25rem 0.85rem;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .admin-nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .admin-nav-header {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      padding: 0 10px 8px 10px;
+    }
+
+    .admin-nav-link {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #94a3b8;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+
+    .admin-nav-link:hover {
+      color: #f1f5f9;
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .admin-nav-link.active {
+      color: #a5b4fc;
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+      font-weight: 700;
+    }
+
+    .admin-nav-icon {
+      font-size: 1.05rem;
+      line-height: 1;
+    }
+
+    .admin-nav-badge {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.07);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+
+    .admin-nav-badge.alert-badge {
+      background: #f59e0b;
+      color: #0f172a;
+    }
+
+    .admin-sidebar-footer {
+      border-top: 1px solid #1e293b;
+      padding-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .admin-status-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .admin-content-viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.75rem 2rem 3rem 2rem;
+      background: #030712;
+    }
+
+    .admin-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .admin-stat-box {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .admin-stat-num {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .admin-stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    .admin-page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-page-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .admin-page-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    @media (max-width: 900px) {
+      .admin-app-body {
+        flex-direction: column;
+        height: auto;
+        overflow: auto;
+      }
+      .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e293b;
+      }
+      .admin-content-viewport {
+        padding: 1rem;
+      }
+    }
   </style>
 
 </head>
 <body>
 
   <!-- Header -->
-  <header>
+  <header id="mainHeader">
     <div class="header-content">
       <div class="brand">
         <div class="brand-icon">
@@ -1453,7 +1700,7 @@
           </button>
 
           <!-- Admin Panel Button (if admin) -->
-          <button class="btn-secondary admin-btn" id="headerAdminBtn" onclick="openAdminModal()" style="display: none;">
+          <button class="btn-secondary admin-btn" id="headerAdminBtn" onclick="openAdminApp()" style="display: none;">
             <span>🛡️</span> Admin Panel
           </button>
 
@@ -1472,7 +1719,7 @@
   </header>
 
   <!-- Main Content -->
-  <main>
+  <main id="mainAppContainer">
     <!-- Error Notification Box -->
     <div id="errorBox" class="error-box">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
@@ -1534,72 +1781,57 @@
         </div>
       </div>
 
-      <!-- Support & Payment Section (2 Visible, High-Contrast Cards) -->
-      <div id="landingContactSection" style="margin-top: 1.5rem;">
+      <!-- About AutoPress & Platform Features Section -->
+      <div id="landingAboutSection" style="margin-top: 1.5rem;">
         <div class="landing-section-header">
-          <span class="landing-section-pill">Support & Payments</span>
-          <h2 class="landing-section-title">Direct Support & Credit Top-Up</h2>
+          <span class="landing-section-pill">About AutoPress</span>
+          <h2 class="landing-section-title">Designed for Fast, High-Precision Print Automation</h2>
         </div>
 
-        <div class="landing-contact-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-          <!-- Card 1: Direct Phone Call Support -->
-          <div class="landing-contact-card" style="padding: 26px;">
-            <div>
-              <span class="contact-card-badge tag-blue">📞 Phone & Direct Support</span>
-              <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 8px 0 6px 0;">
-                Direct Call & Assistance
-              </div>
-              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px;">
-                Call or SMS directly for instant account activation, printer setup help, or questions.
-              </p>
-
-              <div style="background: var(--card-subtle); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 20px; text-align: center;">
-                <div style="font-size: 0.725rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 4px;">Phone Number</div>
-                <div style="font-size: 1.35rem; font-weight: 800; color: #a5b4fc; letter-spacing: 0.03em;">
-                  +251 978 591 099
-                </div>
-              </div>
+        <div class="landing-features-grid">
+          <!-- Card 1: Batch Layout -->
+          <div class="landing-feature-card">
+            <div class="feature-card-icon" style="background: rgba(79, 70, 229, 0.15); color: #818cf8;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
             </div>
-
-            <a href="tel:+251978591099" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.9rem;">
-              📞 Call Now: +251 978 591 099
-            </a>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 12px 0 6px 0;">
+              Batch Fayda ID Processing
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+              Upload up to 5 Ethiopian Fayda ID PDFs simultaneously. The system automatically extracts citizen photos, demographic data, and QR codes into standardized card templates.
+            </p>
           </div>
 
-          <!-- Card 2: Commercial Bank of Ethiopia (CBE) Details -->
-          <div class="landing-contact-card featured" style="padding: 26px;">
-            <div>
-              <span class="contact-card-badge tag-green">🏦 Bank Payment Details</span>
-              <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0;">
-                Commercial Bank of Ethiopia (CBE)
-              </div>
-              <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-                Account Name: <strong style="color: var(--text-main); font-size: 0.95rem;">Bilal Mohamed Hussein</strong>
-              </div>
-
-              <!-- Bank Account Copy Box -->
-              <div class="bank-account-box" style="padding: 14px 16px; margin-bottom: 14px;">
-                <div>
-                  <div style="font-size: 0.725rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 2px;">CBE Account Number</div>
-                  <div class="bank-account-num" id="cbeAccountDisplay" style="font-size: 1.2rem; font-weight: 800; letter-spacing: 0.05em;">1000624900891</div>
-                </div>
-                <button type="button" class="copy-account-btn" id="cbeCopyBtn" onclick="copyBankAccount('1000624900891', 'cbeCopyBtn')" style="padding: 8px 14px; font-size: 0.825rem;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                  <span>Copy Number</span>
-                </button>
-              </div>
-
-              <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: var(--radius-md); padding: 10px 12px;">
-                💡 <strong>How to recharge:</strong> Transfer to the CBE account above, then call or SMS <strong style="color: var(--text-main);">+251978591099</strong> with your reference for instant credit activation.
-              </div>
+          <!-- Card 2: 300 DPI Fidelity -->
+          <div class="landing-feature-card">
+            <div class="feature-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
             </div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 12px 0 6px 0;">
+              300 DPI Print Quality
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+              Outputs ultra-crisp, high-density 300 DPI graphics calibrated specifically for PVC ID card printers and standard photo paper printers without blur or distortion.
+            </p>
+          </div>
 
-            <a href="tel:+251978591099" class="btn-secondary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem;">
-              Call / SMS for Recharge Confirmation &rarr;
-            </a>
+          <!-- Card 3: Font & QR Integrity -->
+          <div class="landing-feature-card">
+            <div class="feature-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 12px 0 6px 0;">
+              Amharic & English Fidelity
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+              Full unicode support ensures native Ethiopic Ge'ez typography and English text render accurately alongside high-contrast QR codes for 100% scanner verification.
+            </p>
           </div>
         </div>
       </div>
@@ -1749,7 +1981,7 @@
     </div>
   </main>
 
-  <footer>
+  <footer id="mainFooter">
     <div style="max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; text-align: left;">
       <div>
         <div style="font-weight: 700; color: var(--text-main); font-size: 0.875rem; display: flex; align-items: center; gap: 6px;">
@@ -1759,14 +1991,14 @@
           High-accuracy 300 DPI Fayda ID batch card printing suite.
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 0.8rem;">
-        <a href="tel:+251978591099" style="color: #a5b4fc; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 600;">
-          <span>📞</span> +251 978 591 099
-        </a>
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-dim);">
+        <span>300 DPI Standard</span>
+        <span>&bull;</span>
+        <span>Batch Layouts</span>
       </div>
     </div>
     <div style="margin-top: 1.25rem; font-size: 0.725rem; color: var(--text-dim); border-top: 1px solid var(--border-subtle); padding-top: 1rem; text-align: center;">
-      AutoPress &copy; 2026 &bull; CBE Acct: 1000624900891 (Bilal Mohamed Hussein) &bull; Built for Ethiopian Print Professionals
+      AutoPress &copy; 2026 &bull; Ethiopian Fayda Print Automation Studio &bull; Built for Professional Print Shops
     </div>
   </footer>
 
@@ -1942,19 +2174,16 @@
       <div class="modal-body" style="padding: 1rem 1.5rem 1.5rem 1.5rem;">
         <!-- Credits Ledger Tab -->
         <div id="dashCreditsView">
-          <!-- Quick Recharge Notice -->
-          <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+          <!-- Credits Ledger Info Banner -->
+          <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div>
-              <div style="font-size: 0.85rem; font-weight: 600; color: #fbbf24; margin-bottom: 2px;">
-                ⚡ Need More Credits?
+              <div style="font-size: 0.85rem; font-weight: 600; color: #a5b4fc; margin-bottom: 2px;">
+                ⚡ Credit History & Activity Ledger
               </div>
               <div style="font-size: 0.775rem; color: var(--text-muted);">
-                Transfer via CBE: <strong style="color:var(--text-main);">1000624900891</strong> (Bilal Mohamed Hussein) &bull; Call or SMS: <strong style="color:var(--text-main);">+251 978 591 099</strong> for instant activation.
+                Each processed Fayda ID consumes 1 credit. New accounts receive complimentary starter credits automatically.
               </div>
             </div>
-            <a href="tel:+251978591099" class="btn-secondary" style="font-size: 0.75rem; padding: 6px 12px; white-space: nowrap;">
-              📞 Call: +251 978 591 099
-            </a>
           </div>
 
           <div class="data-table-container">
@@ -2000,116 +2229,326 @@
     </div>
   </div>
 
-  <!-- ================= ADMIN PANEL MODAL ================= -->
-  <div id="adminModal" class="modal-overlay">
-    <div class="modal-card wide">
-      <div class="modal-header">
-        <div class="modal-title">
-          <span style="color:#818cf8;">🛡️</span>
-          <span>System Administration & Audit</span>
+  <!-- ================= FULL-PAGE ADMIN APPLICATION ================= -->
+  <div id="adminFullApp" class="admin-app-root" style="display: none;">
+    <!-- Admin App Top Navigation Bar -->
+    <header class="admin-app-topbar">
+      <div class="admin-topbar-left">
+        <div class="admin-brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
         </div>
-        <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
-      </div>
-
-      <!-- Overview Stats -->
-      <div style="padding: 1.25rem 1.5rem 0.5rem 1.5rem;">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-val blue" id="admTotalUsers">0</div>
-            <div class="stat-lbl">Total Users</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="admin-brand-title">AutoPress Admin</span>
+            <span class="admin-badge">CONTROL CONSOLE</span>
           </div>
-          <div class="stat-card">
-            <div class="stat-val green" id="admActiveUsers">0</div>
-            <div class="stat-lbl">Active Users</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val red" id="admSuspUsers">0</div>
-            <div class="stat-lbl">Suspended</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val gold" id="admIssuedCredits">0</div>
-            <div class="stat-lbl">Credits Issued</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val blue" id="admUsedCredits">0</div>
-            <div class="stat-lbl">Credits Used</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="admTotalDocs">0</div>
-            <div class="stat-lbl">Total Docs</div>
-          </div>
+          <div class="admin-brand-subtitle">Unified Website & Telegram Bot Management</div>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="modal-tabs">
-        <button class="modal-tab active" id="tabAdmUsers" onclick="switchAdminTab('users')">Users Management</button>
-        <button class="modal-tab" id="tabAdmCredits" onclick="switchAdminTab('credits')">Global Credit Ledger</button>
-        <button class="modal-tab" id="tabAdmProcessing" onclick="switchAdminTab('processing')">Processing Records</button>
-      </div>
+      <div class="admin-topbar-right">
+        <!-- Return to Studio Button -->
+        <button class="admin-return-btn" onclick="returnToStudio()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>Back to Print Studio</span>
+        </button>
 
-      <div class="modal-body" style="padding: 1rem 1.5rem 1.5rem 1.5rem;">
-        <!-- Users Management View -->
-        <div id="admUsersView">
-          <div style="display: flex; gap: 12px; margin-bottom: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-            <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 260px;">
-              <input type="text" id="admUserSearchInput" class="form-input" placeholder="Search users by name or email..." oninput="handleAdminUserSearch(this.value)" style="max-width: 320px;" />
-              <span style="font-size: 0.8rem; color: var(--text-muted);" id="admUsersCount">0 users</span>
+        <!-- Admin Profile Pill -->
+        <div class="admin-profile-pill">
+          <div class="admin-avatar">🛡️</div>
+          <div>
+            <div id="adminTopName" style="font-weight: 700; font-size: 0.825rem; color: var(--text-main);">Admin</div>
+            <div id="adminTopEmail" style="font-size: 0.7rem; color: var(--text-muted);">bilaalm68@gmail.com</div>
+          </div>
+        </div>
+
+        <!-- Sign Out Button -->
+        <button class="btn-secondary" onclick="handleLogout()" title="Sign Out" style="padding: 7px 10px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Admin App Body (Sidebar + Content Viewport) -->
+    <div class="admin-app-body">
+      <!-- Left Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="admin-nav-group">
+          <div class="admin-nav-header">ADMINISTRATION</div>
+
+          <button class="admin-nav-link active" id="admNavDashboard" onclick="switchAdminTab('dashboard')">
+            <span class="admin-nav-icon">📊</span>
+            <span>Dashboard</span>
+          </button>
+
+          <button class="admin-nav-link" id="admNavUsers" onclick="switchAdminTab('users')">
+            <span class="admin-nav-icon">👥</span>
+            <span>Users</span>
+            <span class="admin-nav-badge" id="admSidebarUsersCount">0</span>
+          </button>
+
+          <button class="admin-nav-link" id="admNavPayments" onclick="switchAdminTab('payments')">
+            <span class="admin-nav-icon">💳</span>
+            <span>Payments</span>
+            <span class="admin-nav-badge alert-badge" id="admSidebarPendingBadge" style="display:none;">0</span>
+          </button>
+
+          <button class="admin-nav-link" id="admNavProcessing" onclick="switchAdminTab('processing')">
+            <span class="admin-nav-icon">📄</span>
+            <span>Jobs</span>
+          </button>
+
+          <button class="admin-nav-link" id="admNavCredits" onclick="switchAdminTab('credits')">
+            <span class="admin-nav-icon">⚡</span>
+            <span>Credits</span>
+          </button>
+        </div>
+
+        <div class="admin-sidebar-footer">
+          <div class="admin-status-box">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; color: #34d399;">
+              <span class="live-pulse" style="width: 7px; height: 7px;"></span>
+              <span>Backend API Live</span>
             </div>
-            <!-- Quick Upgrade by Email Form -->
-            <form onsubmit="handleQuickAdminPromote(event)" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <input type="email" id="quickPromoteEmailInput" class="form-input" placeholder="User email to give Admin..." style="max-width: 250px; font-size: 0.82rem; padding: 6px 12px;" required />
-              <button type="submit" id="quickPromoteBtn" class="btn-primary" style="padding: 6px 14px; font-size: 0.82rem; white-space: nowrap;">
-                Give Admin
+            <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">SQLite Single Source of Truth</div>
+          </div>
+          <button class="btn-secondary" onclick="returnToStudio()" style="width: 100%; justify-content: center; font-size: 0.8rem; padding: 8px;">
+            ← Return to Studio
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Viewport Area -->
+      <main class="admin-content-viewport">
+        <!-- Top Metrics Stats Grid -->
+        <div class="admin-stats-bar">
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">👥</div>
+            <div>
+              <div class="admin-stat-num" id="admTotalUsers">0</div>
+              <div class="admin-stat-label">Total Users</div>
+            </div>
+          </div>
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">🟢</div>
+            <div>
+              <div class="admin-stat-num" id="admActiveUsers">0</div>
+              <div class="admin-stat-label">Active Users</div>
+            </div>
+          </div>
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(129, 140, 248, 0.15); color: #a5b4fc;">✈️</div>
+            <div>
+              <div class="admin-stat-num" id="admTgUsers">0</div>
+              <div class="admin-stat-label">Telegram Users</div>
+            </div>
+          </div>
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">⚡</div>
+            <div>
+              <div class="admin-stat-num" id="admIssuedCredits">0</div>
+              <div class="admin-stat-label">Credits Issued</div>
+            </div>
+          </div>
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">💳</div>
+            <div>
+              <div class="admin-stat-num" id="admPendingPayments" style="color: #f59e0b;">0</div>
+              <div class="admin-stat-label">Pending Top-Ups</div>
+            </div>
+          </div>
+          <div class="admin-stat-box">
+            <div class="stat-icon-wrap" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">📄</div>
+            <div>
+              <div class="admin-stat-num" id="admTotalDocs">0</div>
+              <div class="admin-stat-label">Total Documents</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. DASHBOARD OVERVIEW VIEW -->
+        <div id="admDashboardView" class="admin-tab-pane">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-page-title">Executive Operations Dashboard</div>
+              <div class="admin-page-desc">Overview of real-time printing activity, credit balances, and manual top-up requests</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-secondary" onclick="loadAdminStats(); loadAdminUsers(); loadAdminPayments();" style="font-size: 0.82rem; padding: 6px 12px;">
+                🔄 Refresh Metrics
               </button>
-            </form>
+            </div>
+          </div>
+
+          <!-- 2-Column Dashboard Cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <!-- Card 1: Pending Payment Verifications -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 12px; padding: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.1rem;">💳</span>
+                  <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Pending Payment Requests</span>
+                </div>
+                <button class="btn-secondary" onclick="switchAdminTab('payments')" style="font-size: 0.75rem; padding: 4px 8px;">
+                  View All Payments →
+                </button>
+              </div>
+              <div id="admDashPendingList" style="font-size: 0.85rem; color: var(--text-muted);">
+                Loading pending payments...
+              </div>
+            </div>
+
+            <!-- Card 2: Recent User Activity & System Health -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 12px; padding: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.1rem;">👥</span>
+                  <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Recent Users</span>
+                </div>
+                <button class="btn-secondary" onclick="switchAdminTab('users')" style="font-size: 0.75rem; padding: 4px 8px;">
+                  Manage Users →
+                </button>
+              </div>
+              <div id="admDashRecentUsers" style="font-size: 0.85rem; color: var(--text-muted);">
+                Loading recent users...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. USERS MANAGEMENT VIEW -->
+        <div id="admUsersView" class="admin-tab-pane" style="display: none;">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-page-title">Unified User Management</div>
+              <div class="admin-page-desc">Single source of truth for both Website and Telegram bot accounts</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <!-- Source & Status Filter Chips -->
+              <button class="btn-secondary active-filter" id="filterUserAll" onclick="filterAdminUsers('', '')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px;">
+                All (<span id="countUserAll">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterUserWebsite" onclick="filterAdminUsers('website', '')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; color: #60a5fa; border-color: rgba(96,165,250,0.3);">
+                🌐 Website (<span id="countUserWebsite">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterUserTelegram" onclick="filterAdminUsers('telegram', '')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; color: #818cf8; border-color: rgba(129,140,248,0.3);">
+                ✈️ Telegram (<span id="countUserTelegram">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterUserBoth" onclick="filterAdminUsers('both', '')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; color: #34d399; border-color: rgba(52,211,153,0.3);">
+                🔄 Both (<span id="countUserBoth">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterUserActive" onclick="filterAdminUsers('', 'active')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; color: #a7f3d0; border-color: rgba(52,211,153,0.3);">
+                Active (<span id="countUserActive">0</span>)
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="admUserSearchInput" class="form-input" placeholder="Search name, email, @telegram, or ID..." oninput="handleAdminUserSearch(this.value)" style="min-width: 280px; font-size: 0.82rem;" />
+              <button class="btn-secondary" onclick="loadAdminUsers()" title="Refresh Users" style="padding: 6px 10px;">🔄</button>
+            </div>
           </div>
 
           <div class="data-table-container">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Role</th>
-                  <th>Status</th>
+                  <th>User / Name</th>
+                  <th>Email</th>
+                  <th>Telegram</th>
+                  <th>Source</th>
                   <th>Credits Balance</th>
-                  <th>Docs Done</th>
+                  <th>Status</th>
                   <th>Joined</th>
                   <th>Last Active</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="admUsersTableBody">
-                <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading users...</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading users...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Global Credit Ledger View -->
-        <div id="admCreditsView" style="display:none;">
+        <!-- 3. PAYMENTS MANAGEMENT VIEW -->
+        <div id="admPaymentsView" class="admin-tab-pane" style="display: none;">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-page-title">Payment Top-Ups & Receipt Verification</div>
+              <div class="admin-page-desc">Audit submitted bank transfer and Telebirr payment screenshots and allocate credits</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <!-- Filter Chips -->
+              <button class="btn-secondary active-filter" id="filterPayAll" onclick="filterAdminPayments('')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px;">
+                All (<span id="countPayAll">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterPayPending" onclick="filterAdminPayments('PENDING')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.4); color: #fbbf24;">
+                Pending (<span id="countPayPending">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterPayApproved" onclick="filterAdminPayments('APPROVED')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(52,211,153,0.4); color: #34d399;">
+                Approved (<span id="countPayApproved">0</span>)
+              </button>
+              <button class="btn-secondary" id="filterPayRejected" onclick="filterAdminPayments('REJECTED')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(248,113,113,0.4); color: #f87171;">
+                Rejected (<span id="countPayRejected">0</span>)
+              </button>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="admPaymentSearchInput" class="form-input" placeholder="Search payment ID, user, or telegram..." oninput="handleAdminPaymentSearch(this.value)" style="min-width: 280px; font-size: 0.82rem;" />
+              <button class="btn-secondary" onclick="loadAdminPayments()" title="Refresh payments" style="padding: 6px 10px;">🔄</button>
+            </div>
+          </div>
+
           <div class="data-table-container">
             <table class="data-table">
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>User</th>
-                  <th>Type</th>
+                  <th>Payment ID</th>
+                  <th>User / Telegram</th>
+                  <th>Package</th>
                   <th>Amount</th>
-                  <th>Reason</th>
-                  <th>Admin Actor</th>
-                  <th>Balance After</th>
+                  <th>Method</th>
+                  <th>Receipt</th>
+                  <th>Status</th>
+                  <th>Audit / Reviewer</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="admCreditsTableBody">
-                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading global ledger...</td></tr>
+              <tbody id="admPaymentsTableBody">
+                <tr><td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading payments...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Global Processing History View -->
-        <div id="admProcessingView" style="display:none;">
+        <!-- 4. JOBS / PROCESSING RECORDS VIEW -->
+        <div id="admProcessingView" class="admin-tab-pane" style="display: none;">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-page-title">Jobs & Document Processing Records</div>
+              <div class="admin-page-desc">Complete audit of all Fayda ID PDF processing jobs executed across Web and Telegram</div>
+            </div>
+            <div>
+              <button class="btn-secondary" onclick="loadAdminProcessingHistory()" style="font-size: 0.82rem; padding: 6px 12px;">
+                🔄 Refresh Jobs
+              </button>
+            </div>
+          </div>
+
           <div class="data-table-container">
             <table class="data-table">
               <thead>
@@ -2130,7 +2569,42 @@
             </table>
           </div>
         </div>
-      </div>
+
+        <!-- 5. GLOBAL CREDIT LEDGER VIEW -->
+        <div id="admCreditsView" class="admin-tab-pane" style="display: none;">
+          <div class="admin-page-header">
+            <div>
+              <div class="admin-page-title">Global Credit Audit Ledger</div>
+              <div class="admin-page-desc">Immutable transaction history of all credit grants, usage deductions, and top-ups</div>
+            </div>
+            <div>
+              <button class="btn-secondary" onclick="loadAdminCreditHistory()" style="font-size: 0.82rem; padding: 6px 12px;">
+                🔄 Refresh Ledger
+              </button>
+            </div>
+          </div>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Reason</th>
+                  <th>Admin Actor</th>
+                  <th>Balance After</th>
+                </tr>
+              </thead>
+              <tbody id="admCreditsTableBody">
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading global ledger...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
     </div>
   </div>
 
@@ -2140,20 +2614,27 @@
       <div class="modal-header">
         <div class="modal-title">
           <span style="color:#fbbf24;">⚡</span>
-          <span>Adjust User Credits</span>
+          <span>Add / Adjust User Credits</span>
         </div>
         <button class="modal-close" onclick="closeModal('creditActionModal')">&times;</button>
       </div>
 
       <div class="modal-body">
-        <div id="creditActionAlert" class="alert-banner alert-error"></div>
+        <div id="creditActionAlert" class="alert-banner alert-error" style="display:none; margin-bottom:1rem;"></div>
         <input type="hidden" id="targetCreditUserId" />
+        <input type="hidden" id="targetCreditTelegramId" />
 
-        <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 1rem;">
-          <div style="font-size: 0.8rem; color: var(--text-muted);">Target User:</div>
-          <div style="font-weight: 700; color: var(--text-main);" id="targetCreditUserEmail">user@example.com</div>
-          <div style="font-size: 0.8rem; color: #fbbf24; margin-top: 4px;">
-            Current Balance: <strong id="targetCreditUserBal">0</strong> credits
+        <div style="background: rgba(15, 23, 42, 0.7); padding: 14px; border-radius: 10px; border: 1px solid #1e293b; margin-bottom: 1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Target User:</div>
+              <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);" id="targetCreditUserName">User Name</div>
+              <div style="font-size: 0.8rem; color: #818cf8;" id="targetCreditUserHandle">@username / user@example.com</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Current Balance</div>
+              <div style="font-size: 1.2rem; font-weight: 800; color: #fbbf24;" id="targetCreditUserBal">0</div>
+            </div>
           </div>
         </div>
 
@@ -2172,27 +2653,106 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" id="creditAmountLabel">Amount (Credits)</label>
-          <input type="number" id="creditAmountInput" class="form-input" min="1" step="1" value="100" required />
+          <label class="form-label" id="creditAmountLabel">Amount (Credits to Add)</label>
+          <input type="number" id="creditAmountInput" class="form-input" min="1" step="1" value="50" oninput="updateCreditModalLabels()" required />
         </div>
 
         <div class="form-group">
           <label class="form-label">Reason (Recorded in Audit Ledger)</label>
-          <input type="text" id="creditReasonInput" class="form-input" placeholder="e.g. Monthly allocation / Package purchase" required />
+          <input type="text" id="creditReasonInput" class="form-input" placeholder="e.g. Manual admin credit / Promotional grant" value="Manual admin credit" required />
         </div>
 
-        <!-- Confirmation Prompt Box -->
+        <!-- Dynamic Calculation & Confirmation Box -->
         <div id="creditConfirmBox" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 1.25rem;">
-          <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600; margin-bottom: 4px;">Confirmation Required</div>
-          <div style="font-size: 0.8rem; color: var(--text-muted);" id="creditConfirmText">
-            Are you sure you want to add 100 credits to this account?
+          <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600; margin-bottom: 4px;">Balance Preview</div>
+          <div style="font-size: 0.85rem; color: var(--text-main);" id="creditConfirmText">
+            Previous: <strong id="prevBalPreview">0</strong> ➔ Adding: <strong style="color:#34d399;" id="deltaBalPreview">+50</strong> ➔ New Balance: <strong style="color:#fbbf24;" id="newBalPreview">50</strong> credits
+          </div>
+          <div id="telegramNotificationNotice" style="font-size: 0.75rem; color: #818cf8; margin-top: 6px; display: none;">
+            ✈️ Target user will receive an automated Telegram notification with their new balance.
           </div>
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: flex-end;">
           <button type="button" class="btn-secondary" onclick="closeModal('creditActionModal')">Cancel</button>
-          <button type="button" class="btn-primary" id="creditConfirmBtn" onclick="executeCreditAdjustment()">
-            Confirm Adjustment
+          <button type="button" class="btn-primary" id="creditConfirmBtn" onclick="executeCreditAdjustment()" style="background: linear-gradient(135deg, #059669, #10b981); border:none;">
+            Confirm & Add Credits
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= USER DETAILS MODAL ================= -->
+  <div id="userDetailModal" class="modal-overlay" style="z-index: 1150;">
+    <div class="modal-card wide" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span style="color:#818cf8;">👤</span>
+          <span>User Details & Activity</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('userDetailModal')">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div id="userDetailAlert" class="alert-banner alert-error" style="display:none; margin-bottom:1rem;"></div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);" id="dtlUserName">-</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);" id="dtlUserEmail">-</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <span id="dtlUserSourceBadge" class="tag tag-blue">Website</span>
+              <span id="dtlUserRoleBadge" class="tag tag-blue">USER</span>
+              <span id="dtlUserStatusBadge" class="tag tag-green">ACTIVE</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid #1e293b; padding-top: 12px; font-size: 0.82rem;">
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Telegram Handle / ID</div>
+              <div style="font-weight:600; color:#818cf8;" id="dtlUserTelegram">-</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Current Credit Balance</div>
+              <div style="font-weight:800; color:#fbbf24; font-size:1.1rem;" id="dtlUserBalance">0 Credits</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Total Credits Received</div>
+              <div style="font-weight:600; color:#34d399;" id="dtlUserCreditsRecv">0</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Total Credits Used</div>
+              <div style="font-weight:600; color:#f87171;" id="dtlUserCreditsUsed">0</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Documents Processed</div>
+              <div style="font-weight:600;" id="dtlUserDocsCount">0 (0 successful)</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted); font-size:0.75rem;">Account Joined</div>
+              <div style="font-weight:600;" id="dtlUserJoined">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 1.25rem;">
+          <button type="button" class="btn-secondary" onclick="viewUserLedgerFromDetail()" style="font-size: 0.8rem; padding: 7px 12px;">
+            📜 View Credit History
+          </button>
+          <button type="button" class="btn-secondary" onclick="viewUserJobsFromDetail()" style="font-size: 0.8rem; padding: 7px 12px;">
+            📄 View Jobs
+          </button>
+          <button type="button" class="btn-secondary" onclick="viewUserPaymentsFromDetail()" style="font-size: 0.8rem; padding: 7px 12px;">
+            💳 View Payments
+          </button>
+          <button type="button" class="btn-primary" id="dtlAddCreditsBtn" onclick="openCreditModalFromDetail()" style="background: linear-gradient(135deg, #059669, #10b981); border:none; font-size: 0.8rem; padding: 7px 14px;">
+            ⚡ Add Credits
+          </button>
+          <button type="button" class="btn-secondary" onclick="closeModal('userDetailModal')" style="font-size: 0.8rem; padding: 7px 12px;">
+            Close
           </button>
         </div>
       </div>
@@ -2220,23 +2780,123 @@
     </div>
   </div>
 
-  <!-- ================= USER ROLE CONFIRM MODAL ================= -->
-  <div id="userRoleModal" class="modal-overlay" style="z-index: 1100;">
+  <!-- ================= PAYMENT RECEIPT VIEW MODAL ================= -->
+  <div id="receiptModal" class="modal-overlay" style="z-index: 1200;">
+    <div class="modal-card wide" style="max-width: 800px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span style="color:#34d399;">🧾</span>
+          <span>Payment Receipt & Verification</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('receiptModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div id="receiptModalAlert" class="alert-banner" style="display:none; margin-bottom:1rem;"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;" id="receiptGridContainer">
+          <!-- Left: Receipt Image Preview -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; text-align: center; min-height: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div id="receiptImageLoading" style="color: var(--text-muted); font-size: 0.85rem;">
+              <span>⏳ Loading receipt image...</span>
+            </div>
+            <img id="receiptImagePreview" src="" alt="Payment Receipt" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; display: none; cursor: pointer;" onclick="window.open(this.src, '_blank')" title="Click to view full image in new tab" />
+            <div id="receiptImageError" style="display: none; color: #f87171; font-size: 0.85rem; padding: 1rem;">
+              ⚠️ Receipt image could not be loaded from Telegram or storage.
+            </div>
+            <div id="receiptImageHint" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; display: none;">
+              🔍 Click image to open in full size
+            </div>
+          </div>
+
+          <!-- Right: Payment & User Details -->
+          <div>
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Payment Request</span>
+                <span id="receiptModalStatusBadge" class="tag tag-yellow">PENDING</span>
+              </div>
+
+              <div style="margin-bottom: 10px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Payment ID</div>
+                <div style="font-family: monospace; font-weight: 700; color: #818cf8; font-size: 0.9rem;" id="receiptModalPaymentId">-</div>
+              </div>
+
+              <div style="margin-bottom: 10px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">User Account / Telegram</div>
+                <div style="font-weight: 600; color: var(--text-main);" id="receiptModalUser">-</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" id="receiptModalTelegramId">-</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">Amount</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #34d399;" id="receiptModalAmount">0 ETB</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">Credits Requested</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #fbbf24;" id="receiptModalCredits">+0</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 10px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Payment Method</div>
+                <div style="font-weight: 500; font-size: 0.85rem;" id="receiptModalMethod">-</div>
+              </div>
+
+              <div style="margin-bottom: 4px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Submission Date</div>
+                <div style="font-size: 0.8rem; color: var(--text-main);" id="receiptModalDate">-</div>
+              </div>
+
+              <div id="receiptModalAuditBox" style="display:none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #334155;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Review Audit</div>
+                <div style="font-size: 0.8rem;" id="receiptModalAuditText">-</div>
+              </div>
+            </div>
+
+            <!-- Action Buttons for Pending Payments -->
+            <div id="receiptModalActions" style="display: flex; gap: 10px; flex-direction: column;">
+              <button type="button" class="btn-primary" id="receiptApproveBtn" onclick="handleReceiptModalApprove()" style="background: linear-gradient(135deg, #059669, #10b981); border:none; padding: 10px 16px; font-size: 0.9rem; font-weight: 700;">
+                ✅ Approve & Grant Credits
+              </button>
+              <button type="button" class="btn-secondary" id="receiptRejectBtn" onclick="handleReceiptModalReject()" style="color: #f87171; border-color: rgba(248,113,113,0.4); padding: 8px 16px; font-size: 0.85rem;">
+                ❌ Reject Payment Request
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= REJECT PAYMENT PROMPT MODAL ================= -->
+  <div id="rejectPaymentModal" class="modal-overlay" style="z-index: 1300;">
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-title">
-          <span style="color:#818cf8;">🛡️</span>
-          <span>Role Upgrade / Permission Confirmation</span>
+          <span style="color:#f87171;">❌</span>
+          <span>Reject Payment Top-Up</span>
         </div>
-        <button class="modal-close" onclick="closeModal('userRoleModal')">&times;</button>
+        <button class="modal-close" onclick="closeModal('rejectPaymentModal')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 1.5rem;" id="userRoleConfirmPrompt">
-          Are you sure you want to grant Administrator rights to this user?
+        <div id="rejectPaymentAlert" class="alert-banner alert-error" style="display:none;"></div>
+        <input type="hidden" id="targetRejectPaymentId" />
+
+        <p style="font-size: 0.88rem; color: var(--text-main); margin-bottom: 1rem;">
+          You are rejecting payment request <strong id="targetRejectPaymentRef" style="color:#818cf8; font-family:monospace;">-</strong>. No credits will be added to the user's account.
         </p>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" class="btn-secondary" onclick="closeModal('userRoleModal')">Cancel</button>
-          <button type="button" class="btn-primary" id="userRoleConfirmBtn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">Confirm Role Change</button>
+
+        <div class="form-group">
+          <label class="form-label">Rejection Reason (will be notified to user)</label>
+          <textarea id="rejectPaymentReasonInput" class="form-input" rows="3" placeholder="e.g. Screenshot unreadable / Transaction reference not found in bank statement / Invalid amount"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem;">
+          <button type="button" class="btn-secondary" onclick="closeModal('rejectPaymentModal')">Cancel</button>
+          <button type="button" class="btn-primary" id="confirmRejectPaymentBtn" onclick="executeRejectPayment()" style="background: #dc2626; border: none;">
+            Confirm Rejection
+          </button>
         </div>
       </div>
     </div>
@@ -2446,47 +3106,14 @@
     // ==========================================
     // UTILITIES
     // ==========================================
-    function copyBankAccount(textToCopy, btnId) {
-      function showFeedback() {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-          const originalContent = btn.innerHTML;
-          btn.innerHTML = '<span>✓ Copied!</span>';
-          btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-          btn.style.color = '#34d399';
-          setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.style.borderColor = '';
-            btn.style.color = '';
-          }, 2000);
-        }
-      }
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textToCopy).then(showFeedback).catch(() => {
-          fallbackCopyText(textToCopy);
-          showFeedback();
-        });
-      } else {
-        fallbackCopyText(textToCopy);
-        showFeedback();
-      }
-    }
-
-    function fallbackCopyText(text) {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-9999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand('copy');
-      } catch (err) {
-        console.error('Fallback copy failed', err);
-      }
-      document.body.removeChild(textArea);
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     // ==========================================
@@ -2922,9 +3549,9 @@
       currentUser = null;
       localStorage.removeItem('autopress_token');
       localStorage.removeItem('autopress_user');
+      returnToStudio();
       updateHeaderAuthUI();
       closeModal('dashboardModal');
-      closeModal('adminModal');
     }
 
     async function resendVerificationEmail() {
@@ -3088,43 +3715,77 @@
     }
 
     // ==========================================
-    // ADMIN PANEL
+    // FULL-PAGE ADMIN APPLICATION CONTROLLER
     // ==========================================
-    function openAdminModal() {
+    function openAdminApp(tab = 'dashboard') {
       if (!currentToken || !currentUser || currentUser.role !== 'admin') {
         showError('Unauthorized. Admin privileges required.');
         return;
       }
-      openModal('adminModal');
+
+      // Hide main studio header, body container, footer
+      const header = document.getElementById('mainHeader');
+      const main = document.getElementById('mainAppContainer');
+      const footer = document.getElementById('mainFooter');
+      if (header) header.style.display = 'none';
+      if (main) main.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+
+      // Show full-page admin application
+      const adminApp = document.getElementById('adminFullApp');
+      if (adminApp) adminApp.style.display = 'flex';
+
+      // Update admin user badge in topbar
+      const nameEl = document.getElementById('adminTopName');
+      const emailEl = document.getElementById('adminTopEmail');
+      if (nameEl) nameEl.textContent = currentUser.full_name || 'Admin';
+      if (emailEl) emailEl.textContent = currentUser.email || 'Admin';
+
+      // Load initial stats & target tab
       loadAdminStats();
-      loadAdminUsers();
-      switchAdminTab('users');
+      switchAdminTab(tab);
+    }
+
+    function returnToStudio() {
+      const adminApp = document.getElementById('adminFullApp');
+      if (adminApp) adminApp.style.display = 'none';
+
+      const header = document.getElementById('mainHeader');
+      const main = document.getElementById('mainAppContainer');
+      const footer = document.getElementById('mainFooter');
+      if (header) header.style.display = 'block';
+      if (main) main.style.display = 'block';
+      if (footer) footer.style.display = 'block';
+
+      if (window.location.hash.startsWith('#admin')) {
+        history.replaceState(null, null, ' ');
+      }
     }
 
     function switchAdminTab(tab) {
-      const tabUsers = document.getElementById('tabAdmUsers');
-      const tabCredits = document.getElementById('tabAdmCredits');
-      const tabProc = document.getElementById('tabAdmProcessing');
+      const tabs = ['dashboard', 'users', 'payments', 'processing', 'credits'];
+      const activeTab = tabs.includes(tab) ? tab : 'dashboard';
 
-      const viewUsers = document.getElementById('admUsersView');
-      const viewCredits = document.getElementById('admCreditsView');
-      const viewProc = document.getElementById('admProcessingView');
+      tabs.forEach(t => {
+        const navEl = document.getElementById(`admNav${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const viewEl = document.getElementById(`adm${t.charAt(0).toUpperCase() + t.slice(1)}View`);
+        if (navEl) navEl.classList.toggle('active', t === activeTab);
+        if (viewEl) viewEl.style.display = (t === activeTab) ? 'block' : 'none';
+      });
 
-      [tabUsers, tabCredits, tabProc].forEach(b => b.classList.remove('active'));
-      [viewUsers, viewCredits, viewProc].forEach(v => v.style.display = 'none');
+      window.location.hash = `admin/${activeTab}`;
 
-      if (tab === 'credits') {
-        tabCredits.classList.add('active');
-        viewCredits.style.display = 'block';
-        loadAdminCreditHistory();
-      } else if (tab === 'processing') {
-        tabProc.classList.add('active');
-        viewProc.style.display = 'block';
-        loadAdminProcessingHistory();
-      } else {
-        tabUsers.classList.add('active');
-        viewUsers.style.display = 'block';
+      if (activeTab === 'dashboard') {
+        loadAdminStats();
+        loadAdminDashboardOverview();
+      } else if (activeTab === 'users') {
         loadAdminUsers();
+      } else if (activeTab === 'payments') {
+        loadAdminPayments();
+      } else if (activeTab === 'processing') {
+        loadAdminProcessingHistory();
+      } else if (activeTab === 'credits') {
+        loadAdminCreditHistory();
       }
     }
 
@@ -3135,20 +3796,439 @@
         });
         if (!res.ok) return;
         const json = await res.json();
-        const s = json.data;
+        const s = json.data || {};
 
-        document.getElementById('admTotalUsers').textContent = s.total_users;
-        document.getElementById('admActiveUsers').textContent = s.active_users;
-        document.getElementById('admSuspUsers').textContent = s.suspended_users;
-        document.getElementById('admIssuedCredits').textContent = s.total_credits_issued;
-        document.getElementById('admUsedCredits').textContent = s.total_credits_used;
-        document.getElementById('admTotalDocs').textContent = s.total_documents;
+        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val !== undefined ? val : '0'; };
+        setTxt('admTotalUsers', s.total_users);
+        setTxt('admActiveUsers', s.active_users);
+        setTxt('admTgUsers', s.telegram_users);
+        setTxt('admIssuedCredits', s.total_credits_issued);
+        setTxt('admPendingPayments', s.pending_payments);
+        setTxt('admTotalDocs', s.total_documents);
+
+        setTxt('admSidebarUsersCount', s.total_users);
+        const sidebarPendingBadge = document.getElementById('admSidebarPendingBadge');
+        if (sidebarPendingBadge) {
+          if ((s.pending_payments || 0) > 0) {
+            sidebarPendingBadge.textContent = s.pending_payments;
+            sidebarPendingBadge.style.display = 'inline-block';
+          } else {
+            sidebarPendingBadge.style.display = 'none';
+          }
+        }
       } catch (err) {
         console.error('[AutoPress] Admin stats error:', err);
       }
     }
 
+    async function loadAdminDashboardOverview() {
+      const pendingListEl = document.getElementById('admDashPendingList');
+      const recentUsersEl = document.getElementById('admDashRecentUsers');
+
+      try {
+        // Fetch top pending payments
+        const payRes = await fetch(`${API_BASE_URL}/api/admin/payments?status=PENDING&limit=5`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (payRes.ok) {
+          const pData = await payRes.json();
+          const pList = pData.payments || [];
+          if (pList.length === 0) {
+            pendingListEl.innerHTML = `
+              <div style="padding: 1.5rem; text-align: center; color: #34d399; background: rgba(52, 211, 153, 0.05); border-radius: 8px;">
+                ✅ All payment top-up requests have been reviewed. No pending items!
+              </div>
+            `;
+          } else {
+            pendingListEl.innerHTML = pList.map(p => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(2, 6, 23, 0.6); border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 8px;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">
+                    ${escapeHtml(p.user_name || p.user_email || 'Telegram User')}
+                  </div>
+                  <div style="font-size: 0.72rem; color: #fbbf24;">
+                    +${p.credits_requested} Credits (${p.amount_etb} ETB via ${escapeHtml(p.payment_method || 'Transfer')})
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #059669; border: none;" onclick="handleApprovePayment('${p.id}')">
+                    ✅ Approve
+                  </button>
+                  <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; color: #34d399;" onclick="openReceiptModal('${p.id}')">
+                    👁️ Receipt
+                  </button>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        if (pendingListEl) pendingListEl.innerHTML = `<span style="color:#f87171;">Error loading pending payments: ${err.message}</span>`;
+      }
+
+      try {
+        // Fetch recent users
+        const uRes = await fetch(`${API_BASE_URL}/api/admin/users?limit=5`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (uRes.ok) {
+          const uData = await uRes.json();
+          const uList = (uData.users || []).slice(0, 5);
+          if (uList.length === 0) {
+            recentUsersEl.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">No users found.</div>`;
+          } else {
+            recentUsersEl.innerHTML = uList.map(u => {
+              const srcBadge = u.source === 'telegram'
+                ? '<span class="tag" style="background:rgba(129,140,248,0.15); color:#a5b4fc; font-size:0.68rem; padding:2px 6px;">✈️ TG</span>'
+                : (u.source === 'both' ? '<span class="tag tag-green" style="font-size:0.68rem; padding:2px 6px;">🔄 BOTH</span>' : '<span class="tag tag-blue" style="font-size:0.68rem; padding:2px 6px;">🌐 WEB</span>');
+              const name = u.full_name || (u.telegram_username ? `@${u.telegram_username}` : (u.email && !u.email.startsWith('telegram_') ? u.email : `User #${u.id}`));
+              return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(2, 6, 23, 0.6); border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 6px;">
+                  <div>
+                    <div style="font-weight: 600; color: var(--text-main); font-size: 0.825rem; display: flex; align-items: center; gap: 6px;">
+                      <span>${escapeHtml(name)}</span>
+                      ${srcBadge}
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                      Bal: <strong style="color:#fbbf24;">${u.current_credits} credits</strong> &bull; Docs: ${u.total_documents || 0}
+                    </div>
+                  </div>
+                  <button class="btn-secondary" style="padding: 3px 8px; font-size: 0.72rem;" onclick="openUserDetailModal(${u.id})">
+                    Details →
+                  </button>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      } catch (err) {
+        if (recentUsersEl) recentUsersEl.innerHTML = `<span style="color:#f87171;">Error loading recent users: ${err.message}</span>`;
+      }
+    }
+
+    // ==========================================
+    // ADMIN PAYMENTS & RECEIPT VERIFICATION
+    // ==========================================
+    let currentAdminPaymentStatus = '';
+    let currentAdminPaymentSearch = '';
+    let adminPaymentSearchTimeout = null;
+    let currentActiveReceiptPayment = null;
+    let activeReceiptBlobUrl = null;
+
+    function filterAdminPayments(status) {
+      currentAdminPaymentStatus = status;
+      ['filterPayAll', 'filterPayPending', 'filterPayApproved', 'filterPayRejected'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.style.boxShadow = 'none';
+      });
+
+      const activeBtnMap = {
+        '': 'filterPayAll',
+        'PENDING': 'filterPayPending',
+        'APPROVED': 'filterPayApproved',
+        'REJECTED': 'filterPayRejected'
+      };
+      const activeBtn = document.getElementById(activeBtnMap[status]);
+      if (activeBtn) activeBtn.style.boxShadow = '0 0 0 2px var(--accent)';
+
+      loadAdminPayments();
+    }
+
+    function handleAdminPaymentSearch(query) {
+      clearTimeout(adminPaymentSearchTimeout);
+      adminPaymentSearchTimeout = setTimeout(() => {
+        currentAdminPaymentSearch = query.trim();
+        loadAdminPayments();
+      }, 300);
+    }
+
+    async function loadAdminPayments() {
+      const tbody = document.getElementById('admPaymentsTableBody');
+      try {
+        let url = `${API_BASE_URL}/api/admin/payments?limit=100`;
+        if (currentAdminPaymentStatus) {
+          url += `&status=${encodeURIComponent(currentAdminPaymentStatus)}`;
+        }
+        if (currentAdminPaymentSearch) {
+          url += `&search=${encodeURIComponent(currentAdminPaymentSearch)}`;
+        }
+
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load payments.');
+        const json = await res.json();
+        const payments = json.payments || [];
+        const counts = json.counts || {};
+
+        // Update count badges
+        const countAll = document.getElementById('countPayAll');
+        const countPending = document.getElementById('countPayPending');
+        const countApproved = document.getElementById('countPayApproved');
+        const countRejected = document.getElementById('countPayRejected');
+        if (countAll) countAll.textContent = counts.total || payments.length;
+        if (countPending) countPending.textContent = counts.pending || 0;
+        if (countApproved) countApproved.textContent = counts.approved || 0;
+        if (countRejected) countRejected.textContent = counts.rejected || 0;
+
+        if (payments.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">No payment top-up requests found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = payments.map(p => {
+          const dateStr = p.created_at ? new Date(p.created_at).toLocaleString() : '-';
+          
+          let statusBadge = '<span class="tag tag-yellow">PENDING</span>';
+          if (p.status === 'APPROVED') {
+            statusBadge = '<span class="tag tag-green">APPROVED</span>';
+          } else if (p.status === 'REJECTED') {
+            statusBadge = '<span class="tag tag-red">REJECTED</span>';
+          }
+
+          let receiptBtn = '<span style="color:var(--text-muted); font-size:0.75rem;">None</span>';
+          if (p.screenshot_file_id || p.screenshot_url) {
+            receiptBtn = `<button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:#34d399; border-color:rgba(52,211,153,0.4);" onclick="openReceiptModal('${p.id}')">👁️ View Receipt</button>`;
+          }
+
+          let userInfo = '<div style="font-weight:600;">Anonymous</div>';
+          if (p.user_email || p.user_name) {
+            userInfo = `
+              <div style="font-weight:600; color:var(--text-main);">${escapeHtml(p.user_name || p.user_email)}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(p.user_email || '')}</div>
+            `;
+          }
+          if (p.telegram_user_id) {
+            const tgHandle = p.telegram_username ? `@${escapeHtml(p.telegram_username)}` : `ID: ${p.telegram_user_id}`;
+            userInfo += `<div style="font-size:0.75rem; color:#818cf8;">✈️ ${tgHandle}</div>`;
+          }
+
+          let auditInfo = '—';
+          if (p.status === 'APPROVED') {
+            const revDate = p.reviewed_at ? new Date(p.reviewed_at).toLocaleDateString() : '';
+            auditInfo = `<div style="font-size:0.75rem; color:#34d399;">Approved by ${escapeHtml(p.reviewed_by_email || 'Admin')} ${revDate}</div>`;
+          } else if (p.status === 'REJECTED') {
+            auditInfo = `
+              <div style="font-size:0.75rem; color:#f87171;">Rejected by ${escapeHtml(p.reviewed_by_email || 'Admin')}</div>
+              ${p.rejection_reason ? `<div style="font-size:0.72rem; color:var(--text-muted);">Reason: ${escapeHtml(p.rejection_reason)}</div>` : ''}
+            `;
+          }
+
+          let actions = '<span style="color:var(--text-muted); font-size:0.8rem;">—</span>';
+          if (p.status === 'PENDING') {
+            actions = `
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:#059669; border:none;" onclick="handleApprovePayment('${p.id}')" title="Approve & Grant Credits">
+                  ✅ Approve
+                </button>
+                <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:#f87171; border-color:rgba(248,113,113,0.4);" onclick="promptRejectPayment('${p.id}')" title="Reject Request">
+                  ❌ Reject
+                </button>
+              </div>
+            `;
+          }
+
+          return `
+            <tr>
+              <td style="color:var(--text-muted); font-size:0.75rem; white-space:nowrap;">${dateStr}</td>
+              <td style="font-family:monospace; font-weight:700; font-size:0.8rem; color:#818cf8;">${escapeHtml(p.id)}</td>
+              <td>${userInfo}</td>
+              <td>
+                <div style="font-weight:700; color:#fbbf24;">+${p.credits_requested} Credits</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(p.package_id || 'topup')}</div>
+              </td>
+              <td style="font-weight:800; color:#34d399; font-size:0.85rem;">${p.amount_etb} ETB</td>
+              <td style="font-size:0.8rem; color:var(--text-main);">${escapeHtml(p.payment_method || '-')}</td>
+              <td>${receiptBtn}</td>
+              <td>${statusBadge}</td>
+              <td>${auditInfo}</td>
+              <td>${actions}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:#f87171;">Failed to load payments: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function openReceiptModal(paymentId) {
+      if (activeReceiptBlobUrl) {
+        URL.revokeObjectURL(activeReceiptBlobUrl);
+        activeReceiptBlobUrl = null;
+      }
+
+      openModal('receiptModal');
+      const alertEl = document.getElementById('receiptModalAlert');
+      if (alertEl) alertEl.style.display = 'none';
+
+      const imgPreview = document.getElementById('receiptImagePreview');
+      const imgLoading = document.getElementById('receiptImageLoading');
+      const imgError = document.getElementById('receiptImageError');
+      const imgHint = document.getElementById('receiptImageHint');
+
+      imgPreview.style.display = 'none';
+      imgLoading.style.display = 'block';
+      imgError.style.display = 'none';
+      imgHint.style.display = 'none';
+
+      try {
+        // Fetch payment details
+        const res = await fetch(`${API_BASE_URL}/api/admin/payments/${paymentId}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Failed to load payment details.');
+        const json = await res.json();
+        const p = json.data;
+        currentActiveReceiptPayment = p;
+
+        // Populate fields
+        document.getElementById('receiptModalPaymentId').textContent = p.id;
+        document.getElementById('receiptModalUser').textContent = p.user_name || p.user_email || 'Telegram User';
+        document.getElementById('receiptModalTelegramId').textContent = p.telegram_username ? `@${p.telegram_username}` : (p.telegram_user_id ? `Telegram ID: ${p.telegram_user_id}` : p.user_email || '');
+        document.getElementById('receiptModalAmount').textContent = `${p.amount_etb} ETB`;
+        document.getElementById('receiptModalCredits').textContent = `+${p.credits_requested} Credits`;
+        document.getElementById('receiptModalMethod').textContent = p.payment_method || 'Bank Transfer';
+        document.getElementById('receiptModalDate').textContent = p.created_at ? new Date(p.created_at).toLocaleString() : '-';
+
+        const statusBadge = document.getElementById('receiptModalStatusBadge');
+        if (p.status === 'APPROVED') {
+          statusBadge.className = 'tag tag-green';
+          statusBadge.textContent = 'APPROVED';
+        } else if (p.status === 'REJECTED') {
+          statusBadge.className = 'tag tag-red';
+          statusBadge.textContent = 'REJECTED';
+        } else {
+          statusBadge.className = 'tag tag-yellow';
+          statusBadge.textContent = 'PENDING';
+        }
+
+        const auditBox = document.getElementById('receiptModalAuditBox');
+        const auditText = document.getElementById('receiptModalAuditText');
+        if (p.status !== 'PENDING') {
+          auditBox.style.display = 'block';
+          auditText.textContent = p.status === 'APPROVED'
+            ? `Approved by ${p.reviewed_by_email || 'Admin'} on ${new Date(p.reviewed_at).toLocaleString()}`
+            : `Rejected by ${p.reviewed_by_email || 'Admin'} on ${new Date(p.reviewed_at).toLocaleString()}${p.rejection_reason ? ` (Reason: ${p.rejection_reason})` : ''}`;
+        } else {
+          auditBox.style.display = 'none';
+        }
+
+        const actionsBox = document.getElementById('receiptModalActions');
+        actionsBox.style.display = p.status === 'PENDING' ? 'flex' : 'none';
+
+        // Fetch image blob securely through admin proxy endpoint
+        const imgRes = await fetch(`${API_BASE_URL}/api/admin/payments/${paymentId}/receipt`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+
+        if (!imgRes.ok) throw new Error('Receipt image not accessible.');
+        const blob = await imgRes.blob();
+        activeReceiptBlobUrl = URL.createObjectURL(blob);
+        imgPreview.src = activeReceiptBlobUrl;
+        imgLoading.style.display = 'none';
+        imgPreview.style.display = 'block';
+        imgHint.style.display = 'block';
+
+      } catch (err) {
+        imgLoading.style.display = 'none';
+        imgError.style.display = 'block';
+        imgError.textContent = `⚠️ Could not load receipt image: ${err.message}`;
+      }
+    }
+
+    function handleReceiptModalApprove() {
+      if (!currentActiveReceiptPayment) return;
+      handleApprovePayment(currentActiveReceiptPayment.id);
+    }
+
+    function handleReceiptModalReject() {
+      if (!currentActiveReceiptPayment) return;
+      promptRejectPayment(currentActiveReceiptPayment.id);
+    }
+
+    async function handleApprovePayment(paymentId) {
+      if (!confirm(`Are you sure you want to APPROVE payment ${paymentId} and instantly credit the user's balance?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/payments/${paymentId}/approve`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          }
+        });
+
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to approve payment.');
+
+        showSuccess(`Payment approved! +${json.credits_added} credits granted.`);
+        closeModal('receiptModal');
+        loadAdminStats();
+        loadAdminPayments();
+      } catch (err) {
+        showError(`Approval failed: ${err.message}`);
+      }
+    }
+
+    function promptRejectPayment(paymentId) {
+      document.getElementById('targetRejectPaymentId').value = paymentId;
+      document.getElementById('targetRejectPaymentRef').textContent = paymentId;
+      document.getElementById('rejectPaymentReasonInput').value = '';
+      const alertEl = document.getElementById('rejectPaymentAlert');
+      if (alertEl) alertEl.style.display = 'none';
+      openModal('rejectPaymentModal');
+    }
+
+    async function executeRejectPayment() {
+      const paymentId = document.getElementById('targetRejectPaymentId').value;
+      const reason = document.getElementById('rejectPaymentReasonInput').value.trim();
+      const btn = document.getElementById('confirmRejectPaymentBtn');
+      const alertEl = document.getElementById('rejectPaymentAlert');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Rejecting...';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/payments/${paymentId}/reject`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ reason })
+        });
+
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to reject payment.');
+
+        showSuccess(`Payment ${paymentId} rejected.`);
+        closeModal('rejectPaymentModal');
+        closeModal('receiptModal');
+        loadAdminStats();
+        loadAdminPayments();
+      } catch (err) {
+        if (alertEl) {
+          alertEl.textContent = err.message;
+          alertEl.style.display = 'block';
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Confirm Rejection';
+        }
+      }
+    }
+
     let adminSearchTimeout = null;
+    let currentAdminUserSource = '';
+    let currentAdminUserStatus = '';
+    let currentAdminUsersCache = [];
+    let currentActiveDetailUserId = null;
+
     function handleAdminUserSearch(query) {
       clearTimeout(adminSearchTimeout);
       adminSearchTimeout = setTimeout(() => {
@@ -3156,25 +4236,61 @@
       }, 300);
     }
 
+    function filterAdminUsers(source, status) {
+      currentAdminUserSource = source;
+      currentAdminUserStatus = status;
+
+      const btnAll = document.getElementById('filterUserAll');
+      const btnWeb = document.getElementById('filterUserWebsite');
+      const btnTg = document.getElementById('filterUserTelegram');
+      const btnBoth = document.getElementById('filterUserBoth');
+      const btnActive = document.getElementById('filterUserActive');
+
+      [btnAll, btnWeb, btnTg, btnBoth, btnActive].forEach(b => {
+        if (b) b.classList.remove('active-filter');
+      });
+
+      if (!source && !status && btnAll) btnAll.classList.add('active-filter');
+      else if (source === 'website' && btnWeb) btnWeb.classList.add('active-filter');
+      else if (source === 'telegram' && btnTg) btnTg.classList.add('active-filter');
+      else if (source === 'both' && btnBoth) btnBoth.classList.add('active-filter');
+      else if (status === 'active' && btnActive) btnActive.classList.add('active-filter');
+
+      const searchInput = document.getElementById('admUserSearchInput');
+      const query = searchInput ? searchInput.value.trim() : '';
+      loadAdminUsers(query);
+    }
+
     async function loadAdminUsers(search = '') {
       const tbody = document.getElementById('admUsersTableBody');
-      const countEl = document.getElementById('admUsersCount');
       try {
-        const url = search
-          ? `${API_BASE_URL}/api/admin/users?search=${encodeURIComponent(search)}`
-          : `${API_BASE_URL}/api/admin/users`;
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (currentAdminUserSource) params.append('source', currentAdminUserSource);
+        if (currentAdminUserStatus) params.append('status', currentAdminUserStatus);
 
+        const url = `${API_BASE_URL}/api/admin/users?${params.toString()}`;
         const res = await fetch(url, {
           headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         if (!res.ok) throw new Error('Failed to load users.');
         const json = await res.json();
         const users = json.users || [];
+        currentAdminUsersCache = users;
 
-        if (countEl) countEl.textContent = `${json.total} user(s)`;
+        // Update counts if available
+        if (json.counts) {
+          const c = json.counts;
+          const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val !== undefined ? val : '0'; };
+          setTxt('countUserAll', c.all || json.total || users.length);
+          setTxt('countUserWebsite', c.website || 0);
+          setTxt('countUserTelegram', c.telegram || 0);
+          setTxt('countUserBoth', c.both || 0);
+          setTxt('countUserActive', c.active || 0);
+        }
 
         if (users.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">No users found.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">No users matching filters found.</td></tr>`;
           return;
         }
 
@@ -3185,42 +4301,55 @@
           const roleTag = isAdmin
             ? '<span class="tag" style="background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4); font-weight:700;">🛡️ ADMIN</span>'
             : '<span class="tag tag-blue">USER</span>';
-          const isSelf = currentUser && (currentUser.id === u.id || (currentUser.email && currentUser.email.toLowerCase() === u.email.toLowerCase()));
+          const isSelf = currentUser && (currentUser.id === u.id || (currentUser.email && currentUser.email.toLowerCase() === (u.email || '').toLowerCase()));
           const toggleLabel = isSusp ? 'Reactivate' : 'Suspend';
           const regDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
-          const lastAct = u.last_activity ? new Date(u.last_activity).toLocaleDateString() : 'Never';
 
-          let roleButton = '';
-          if (isAdmin) {
-            if (isSelf) {
-              roleButton = '<span style="font-size:0.75rem; color:var(--text-muted); padding:4px 6px;">(You)</span>';
-            } else {
-              roleButton = `<button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:#f87171; border-color:rgba(239,68,68,0.3);" onclick="promptRoleToggle(${u.id}, '${escapeHtml(u.email)}', 'user')">Remove Admin</button>`;
-            }
-          } else {
-            roleButton = `<button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:#818cf8; border-color:rgba(129,140,248,0.4);" onclick="promptRoleToggle(${u.id}, '${escapeHtml(u.email)}', 'admin')">🛡️ Make Admin</button>`;
+          let emailDisplay = '<span style="color:var(--text-muted);">—</span>';
+          if (u.email && !u.email.startsWith('telegram_')) {
+            emailDisplay = escapeHtml(u.email);
           }
+
+          let tgDisplay = '<span style="color:var(--text-muted);">—</span>';
+          if (u.telegram_username) {
+            tgDisplay = `<span style="color:#818cf8; font-weight:600;">@${escapeHtml(u.telegram_username)}</span>`;
+          } else if (u.telegram_user_id) {
+            tgDisplay = `<span style="color:#818cf8; font-size:0.75rem;">ID: ${u.telegram_user_id}</span>`;
+          }
+
+          let srcTag = '<span class="tag tag-blue">🌐 Website</span>';
+          if (u.source === 'telegram') {
+            srcTag = '<span class="tag" style="background:rgba(129,140,248,0.15); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">✈️ Telegram</span>';
+          } else if (u.source === 'both') {
+            srcTag = '<span class="tag tag-green">🔄 Both</span>';
+          }
+
+          const displayName = u.full_name || (u.telegram_username ? `@${u.telegram_username}` : (u.email && !u.email.startsWith('telegram_') ? u.email : `User #${u.id}`));
 
           return `
             <tr>
               <td>
-                <div style="font-weight:600; color:var(--text-main);">${escapeHtml(u.full_name || u.email)}</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(u.email)}</div>
+                <div style="font-weight:600; color:var(--text-main);">${escapeHtml(displayName)}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">ID: ${u.id}</div>
               </td>
+              <td>${emailDisplay}</td>
+              <td>${tgDisplay}</td>
+              <td>${srcTag}</td>
               <td>${roleTag}</td>
               <td>${statusTag}</td>
               <td style="font-weight:700; color:#fbbf24;">${u.current_credits}</td>
               <td>${u.total_documents || 0}</td>
               <td style="color:var(--text-muted); font-size:0.75rem;">${regDate}</td>
-              <td style="color:var(--text-muted); font-size:0.75rem;">${lastAct}</td>
               <td>
-                <div style="display:flex; gap:6px; align-items:center;">
-                  <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptCreditAdjustment(${u.id}, '${escapeHtml(u.email)}', ${u.current_credits})">
-                    ⚡ Credits
+                <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                  <button class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:linear-gradient(135deg, #059669, #10b981); border:none;" onclick="promptCreditAdjustment(${u.id}, '${escapeHtml(displayName)}', ${u.current_credits}, ${u.telegram_user_id || 'null'})" title="Add / Adjust Credits">
+                    ⚡ Add Credits
                   </button>
-                  ${roleButton}
+                  <button class="btn-secondary" style="padding:4px 7px; font-size:0.75rem;" onclick="openUserDetailModal(${u.id})" title="View Details">
+                    👤 Details
+                  </button>
                   ${!isAdmin ? `
-                    <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptStatusToggle(${u.id}, '${escapeHtml(u.email)}', '${u.status}')">
+                    <button class="btn-secondary" style="padding:4px 7px; font-size:0.75rem;" onclick="promptStatusToggle(${u.id}, '${escapeHtml(u.email || displayName)}', '${u.status}')">
                       ${toggleLabel}
                     </button>
                   ` : ''}
@@ -3231,8 +4360,86 @@
         }).join('');
 
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:#f87171;">Failed to load users: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:#f87171;">Failed to load users: ${err.message}</td></tr>`;
       }
+    }
+
+    function openUserDetailModal(userId) {
+      const u = currentAdminUsersCache.find(x => x.id === userId);
+      if (!u) return;
+
+      currentActiveDetailUserId = userId;
+      const displayName = u.full_name || (u.telegram_username ? `@${u.telegram_username}` : (u.email && !u.email.startsWith('telegram_') ? u.email : `User #${u.id}`));
+
+      document.getElementById('dtlUserName').textContent = displayName;
+      document.getElementById('dtlUserEmail').textContent = (u.email && !u.email.startsWith('telegram_')) ? u.email : '— (Telegram Account)';
+
+      const srcEl = document.getElementById('dtlUserSourceBadge');
+      if (srcEl) {
+        if (u.source === 'telegram') {
+          srcEl.className = 'tag';
+          srcEl.style = 'background:rgba(129,140,248,0.15); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);';
+          srcEl.textContent = '✈️ Telegram';
+        } else if (u.source === 'both') {
+          srcEl.className = 'tag tag-green';
+          srcEl.style = '';
+          srcEl.textContent = '🔄 Both (Linked)';
+        } else {
+          srcEl.className = 'tag tag-blue';
+          srcEl.style = '';
+          srcEl.textContent = '🌐 Website';
+        }
+      }
+
+      const roleEl = document.getElementById('dtlUserRoleBadge');
+      if (roleEl) {
+        roleEl.className = u.role === 'admin' ? 'tag tag-yellow' : 'tag tag-blue';
+        roleEl.textContent = u.role === 'admin' ? '🛡️ ADMIN' : 'USER';
+      }
+
+      const statEl = document.getElementById('dtlUserStatusBadge');
+      if (statEl) {
+        statEl.className = u.status === 'suspended' ? 'tag tag-red' : 'tag tag-green';
+        statEl.textContent = u.status === 'suspended' ? 'SUSPENDED' : 'ACTIVE';
+      }
+
+      let tgText = 'None';
+      if (u.telegram_username) tgText = `@${u.telegram_username} (ID: ${u.telegram_user_id || '-'})`;
+      else if (u.telegram_user_id) tgText = `ID: ${u.telegram_user_id}`;
+      document.getElementById('dtlUserTelegram').textContent = tgText;
+
+      document.getElementById('dtlUserBalance').textContent = `${u.current_credits} Credits`;
+      document.getElementById('dtlUserCreditsRecv').textContent = `${u.total_credits_received || u.current_credits || 0}`;
+      document.getElementById('dtlUserCreditsUsed').textContent = `${u.total_credits_used || 0}`;
+      document.getElementById('dtlUserDocsCount').textContent = `${u.total_documents || 0} (${u.successful_documents || 0} successful)`;
+      document.getElementById('dtlUserJoined').textContent = u.created_at ? new Date(u.created_at).toLocaleString() : '-';
+
+      openModal('userDetailModal');
+    }
+
+    function openCreditModalFromDetail() {
+      if (!currentActiveDetailUserId) return;
+      const u = currentAdminUsersCache.find(x => x.id === currentActiveDetailUserId);
+      if (!u) return;
+
+      closeModal('userDetailModal');
+      const displayName = u.full_name || (u.telegram_username ? `@${u.telegram_username}` : (u.email && !u.email.startsWith('telegram_') ? u.email : `User #${u.id}`));
+      promptCreditAdjustment(u.id, displayName, u.current_credits, u.telegram_user_id);
+    }
+
+    function viewUserLedgerFromDetail() {
+      closeModal('userDetailModal');
+      switchAdminTab('credits');
+    }
+
+    function viewUserJobsFromDetail() {
+      closeModal('userDetailModal');
+      switchAdminTab('processing');
+    }
+
+    function viewUserPaymentsFromDetail() {
+      closeModal('userDetailModal');
+      switchAdminTab('payments');
     }
 
     async function loadAdminCreditHistory() {
@@ -3319,14 +4526,21 @@
     // ==========================================
     // ADMIN CREDIT ADJUSTMENT DIALOG
     // ==========================================
-    function promptCreditAdjustment(userId, userEmail, currentBalance) {
+    function promptCreditAdjustment(userId, userNameOrEmail, currentBalance, telegramId = null) {
       document.getElementById('targetCreditUserId').value = userId;
-      document.getElementById('targetCreditUserEmail').textContent = userEmail;
+      document.getElementById('targetCreditTelegramId').value = telegramId || '';
+      document.getElementById('targetCreditUserName').textContent = userNameOrEmail;
+      document.getElementById('targetCreditUserHandle').textContent = telegramId ? `✈️ Telegram ID: ${telegramId}` : `User #${userId}`;
       document.getElementById('targetCreditUserBal').textContent = currentBalance;
-      document.getElementById('creditAmountInput').value = '100';
-      document.getElementById('creditReasonInput').value = '';
+      document.getElementById('creditAmountInput').value = '50';
+      document.getElementById('creditReasonInput').value = 'Manual admin credit';
       document.querySelector('input[name="creditActionType"][value="add"]').checked = true;
       document.getElementById('creditActionAlert').style.display = 'none';
+
+      const tgNotice = document.getElementById('telegramNotificationNotice');
+      if (tgNotice) {
+        tgNotice.style.display = telegramId ? 'block' : 'none';
+      }
 
       updateCreditModalLabels();
       openModal('creditActionModal');
@@ -3334,18 +4548,37 @@
 
     function updateCreditModalLabels() {
       const isAdd = document.querySelector('input[name="creditActionType"]:checked').value === 'add';
-      const userEmail = document.getElementById('targetCreditUserEmail').textContent;
-      const amount = document.getElementById('creditAmountInput').value || '0';
-      const confirmText = document.getElementById('creditConfirmText');
+      const curBal = parseInt(document.getElementById('targetCreditUserBal').textContent, 10) || 0;
+      const amount = parseInt(document.getElementById('creditAmountInput').value, 10) || 0;
+      const submitBtn = document.getElementById('creditConfirmBtn');
+      const amountLabel = document.getElementById('creditAmountLabel');
 
+      const prevEl = document.getElementById('prevBalPreview');
+      const deltaEl = document.getElementById('deltaBalPreview');
+      const newEl = document.getElementById('newBalPreview');
+
+      let newBal = 0;
       if (isAdd) {
-        confirmText.textContent = `Are you sure you want to add ${amount} credits to ${userEmail}?`;
+        newBal = curBal + amount;
+        if (amountLabel) amountLabel.textContent = 'Amount (Credits to Add)';
+        if (deltaEl) { deltaEl.style.color = '#34d399'; deltaEl.textContent = `+${amount}`; }
+        if (submitBtn) {
+          submitBtn.textContent = 'Confirm & Add Credits';
+          submitBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+        }
       } else {
-        confirmText.textContent = `Are you sure you want to deduct ${amount} credits from ${userEmail}?`;
+        newBal = Math.max(0, curBal - amount);
+        if (amountLabel) amountLabel.textContent = 'Amount (Credits to Deduct)';
+        if (deltaEl) { deltaEl.style.color = '#f87171'; deltaEl.textContent = `-${amount}`; }
+        if (submitBtn) {
+          submitBtn.textContent = 'Confirm & Deduct Credits';
+          submitBtn.style.background = '#dc2626';
+        }
       }
-    }
 
-    document.getElementById('creditAmountInput').addEventListener('input', updateCreditModalLabels);
+      if (prevEl) prevEl.textContent = curBal;
+      if (newEl) newEl.textContent = newBal;
+    }
 
     async function executeCreditAdjustment() {
       const alertEl = document.getElementById('creditActionAlert');
@@ -3398,7 +4631,7 @@
         alertEl.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Confirm Adjustment';
+        submitBtn.textContent = 'Confirm & Add Credits';
       }
     }
 
@@ -3439,96 +4672,6 @@
       };
 
       openModal('userStatusModal');
-    }
-
-    // ==========================================
-    // ADMIN USER ROLE TOGGLE (MAKE/REMOVE ADMIN)
-    // ==========================================
-    function promptRoleToggle(userId, userEmail, targetRole) {
-      const isPromote = targetRole === 'admin';
-      const promptEl = document.getElementById('userRoleConfirmPrompt');
-      promptEl.textContent = isPromote
-        ? `Are you sure you want to promote "${userEmail}" to Administrator? They will have full access to manage users, credits, and system settings.`
-        : `Are you sure you want to remove Administrator privileges from "${userEmail}"?`;
-
-      const confirmBtn = document.getElementById('userRoleConfirmBtn');
-      confirmBtn.textContent = isPromote ? 'Confirm Make Admin' : 'Confirm Remove Admin';
-      confirmBtn.style.background = isPromote ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : '#ef4444';
-
-      confirmBtn.onclick = async () => {
-        confirmBtn.disabled = true;
-        try {
-          const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${currentToken}`
-            },
-            body: JSON.stringify({ role: targetRole })
-          });
-          const text = await res.text();
-          let data = {};
-          try {
-            data = JSON.parse(text);
-          } catch {
-            throw new Error(`Server error (${res.status}). Make sure the backend server is running.`);
-          }
-          if (!res.ok) throw new Error(data.error || 'Failed to update user role.');
-
-          closeModal('userRoleModal');
-          loadAdminUsers();
-          loadAdminStats();
-        } catch (err) {
-          alert(`Error: ${err.message}`);
-        } finally {
-          confirmBtn.disabled = false;
-        }
-      };
-
-      openModal('userRoleModal');
-    }
-
-    async function handleQuickAdminPromote(e) {
-      e.preventDefault();
-      const input = document.getElementById('quickPromoteEmailInput');
-      const btn = document.getElementById('quickPromoteBtn');
-      const email = input ? input.value.trim().toLowerCase() : '';
-      if (!email) return;
-
-      if (!confirm(`Are you sure you want to grant Administrator rights to "${email}"?`)) {
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Granting...';
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/admin/users/promote-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentToken}`
-          },
-          body: JSON.stringify({ email: email, role: 'admin' })
-        });
-        const text = await res.text();
-        let data = {};
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error(`Server error (${res.status}). Make sure the backend server is running.`);
-        }
-        if (!res.ok) throw new Error(data.error || 'Failed to grant admin rights.');
-
-        alert(`✅ ${data.message || `Successfully upgraded ${email} to Administrator.`}`);
-        if (input) input.value = '';
-        loadAdminUsers();
-        loadAdminStats();
-      } catch (err) {
-        alert(`❌ ${err.message}`);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '🛡️ Give Admin';
-      }
     }
 
     function escapeHtml(str) {
@@ -3812,6 +4955,27 @@
         }
       });
     }
+
+    // ── Hash route handling for full-page admin app ──────────────────
+    function handleHashRoute() {
+      const hash = window.location.hash;
+      if (hash.startsWith('#admin')) {
+        if (currentToken && currentUser && currentUser.role === 'admin') {
+          const parts = hash.split('/');
+          const tab = parts[1] || 'dashboard';
+          openAdminApp(tab);
+        } else {
+          returnToStudio();
+        }
+      } else if (document.getElementById('adminFullApp') && document.getElementById('adminFullApp').style.display === 'flex') {
+        returnToStudio();
+      }
+    }
+
+    window.addEventListener('hashchange', handleHashRoute);
+    window.addEventListener('load', () => {
+      setTimeout(handleHashRoute, 250);
+    });
 
   </script>
 </body>
