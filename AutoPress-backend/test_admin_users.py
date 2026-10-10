@@ -140,6 +140,16 @@ class TestAdminUsers(unittest.TestCase):
         for u in data_web["users"]:
             self.assertEqual(u["source"], "website")
 
+    def test_admin_list_users_skips_firebase_sync_for_telegram_source(self):
+        """Verify list_users avoids synchronous Firebase auth sync when source=telegram."""
+        with patch("services.firebase_service.fb_admin_auth.list_users") as mock_fb_list:
+            res = self.client.get(
+                "/api/admin/users?source=telegram",
+                headers={"Authorization": f"Bearer {self.admin_token}"}
+            )
+            self.assertEqual(res.status_code, 200)
+            mock_fb_list.assert_not_called()
+
     def test_admin_search_users(self):
         UserModel.get_or_create_telegram_user(
             telegram_user_id=99887766,

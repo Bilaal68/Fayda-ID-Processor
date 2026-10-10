@@ -17,27 +17,28 @@ def get_stats():
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def list_users():
-    # Sync any newly registered Firebase users into SQLite
-    try:
-        from services.firebase_service import fb_admin_auth
-        fb_page = fb_admin_auth.list_users(max_results=100)
-        for fu in fb_page.users:
-            if fu.email:
-                UserModel.create_or_sync_firebase_user(
-                    firebase_uid=fu.uid,
-                    email=fu.email,
-                    full_name=fu.display_name or fu.email.split('@')[0],
-                    is_verified=bool(fu.email_verified),
-                    role="user"
-                )
-    except Exception:
-        pass
-
     search = request.args.get('search', '').strip() or None
     source = request.args.get('source', '').strip() or None
     status = request.args.get('status', '').strip() or None
     limit = min(int(request.args.get('limit', 50)), 100)
     offset = max(int(request.args.get('offset', 0)), 0)
+
+    # Only sync newly registered Firebase users when querying non-telegram or all accounts
+    if source != 'telegram':
+        try:
+            from services.firebase_service import fb_admin_auth
+            fb_page = fb_admin_auth.list_users(max_results=100)
+            for fu in fb_page.users:
+                if fu.email:
+                    UserModel.create_or_sync_firebase_user(
+                        firebase_uid=fu.uid,
+                        email=fu.email,
+                        full_name=fu.display_name or fu.email.split('@')[0],
+                        is_verified=bool(fu.email_verified),
+                        role="user"
+                    )
+        except Exception:
+            pass
 
     users, total, counts = UserModel.list_users(search=search, source=source, status=status, limit=limit, offset=offset)
 

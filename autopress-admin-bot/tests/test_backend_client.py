@@ -142,6 +142,26 @@ class TestBackendClient(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(data)
         self.assertIn("timed out", err.lower())
 
+    async def test_backend_connect_timeout_handling(self):
+        """Client catches ConnectTimeout and returns specific connection error."""
+        with patch("httpx.AsyncClient.request", new_callable=AsyncMock) as mock_req:
+            mock_req.side_effect = httpx.ConnectTimeout("Connect timeout")
+            ok, data, err = await self.client.get_stats()
+
+        self.assertFalse(ok)
+        self.assertIsNone(data)
+        self.assertIn("connection timed out", err.lower())
+
+    async def test_backend_read_timeout_handling(self):
+        """Client catches ReadTimeout and returns specific read error."""
+        with patch("httpx.AsyncClient.request", new_callable=AsyncMock) as mock_req:
+            mock_req.side_effect = httpx.ReadTimeout("Read timeout")
+            ok, data, err = await self.client.get_stats()
+
+        self.assertFalse(ok)
+        self.assertIsNone(data)
+        self.assertIn("read timed out", err.lower())
+
     async def test_backend_connect_error_handling(self):
         """Client safely catches ConnectError when backend is down."""
         with patch("httpx.AsyncClient.request", new_callable=AsyncMock) as mock_req:

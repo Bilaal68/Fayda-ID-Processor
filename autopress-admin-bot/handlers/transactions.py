@@ -8,6 +8,7 @@ with support for viewing user-specific or global history.
 import html
 from typing import List, Dict, Any, Optional
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.error import BadRequest
 from telegram.ext import ContextTypes
 from services.authorization import admin_only
 from services.backend_client import backend_client
@@ -125,9 +126,15 @@ async def callback_list_transactions(update: Update, context: ContextTypes.DEFAU
     else:
         keyboard.append([InlineKeyboardButton("🔙 Main Menu", callback_data="nav:main")])
 
-    await query.edit_message_text(
-        text="\n".join(msg_lines),
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode="HTML"
-    )
+    try:
+        await query.edit_message_text(
+            text="\n".join(msg_lines),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="HTML"
+        )
+    except BadRequest as exc:
+        if "message is not modified" in str(exc).lower():
+            logger.debug("callback_list_transactions: message is not modified; harmless no-op.")
+            return
+        raise
 

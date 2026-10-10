@@ -9,7 +9,9 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from telegram import Update
 from config import settings
+from telegram.error import BadRequest
 from handlers.start import command_start, command_cancel, get_main_menu_keyboard
+from handlers.users import callback_list_users
 from handlers.credits import (
     callback_start_credit_action,
     handle_credit_text_input,
@@ -240,6 +242,45 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         reply_call = update_reason.effective_message.reply_text.call_args
         sent_msg = reply_call[1].get("text") or (reply_call[0][0] if reply_call[0] else "")
         self.assertIn("Payment Rejected", sent_msg)
+
+    async def test_list_users_handles_message_not_modified_gracefully(self):
+        """callback_list_users catches 'message is not modified' BadRequest as a harmless no-op."""
+        context = MagicMock()
+        update = self._create_mock_update(callback_data="nav:users:0")
+        update.callback_query.edit_message_text = AsyncMock(
+            side_effect=BadRequest("Message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message")
+        )
+
+        mock_users_data = {
+            "users": [{"id": 1, "telegram_user_id": 12345, "first_name": "Test", "current_credits": 10}],
+            "total": 1
+        }
+
+        with patch("services.backend_client.backend_client.list_telegram_users", new_callable=AsyncMock) as mock_list:
+            mock_list.return_value = (True, mock_users_data, None)
+            # Should NOT raise an exception
+            await callback_list_users(update, context)
+
+        update.callback_query.edit_message_text.assert_awaited_once()
+
+    async def test_list_users_reraises_other_bad_request_errors(self):
+        """callback_list_users re-raises unrelated BadRequest errors."""
+        context = MagicMock()
+        update = self._create_mock_update(callback_data="nav:users:0")
+        update.callback_query.edit_message_text = AsyncMock(
+            side_effect=BadRequest("Chat not found")
+        )
+
+        mock_users_data = {
+            "users": [{"id": 1, "telegram_user_id": 12345, "first_name": "Test", "current_credits": 10}],
+            "total": 1
+        }
+
+        with patch("services.backend_client.backend_client.list_telegram_users", new_callable=AsyncMock) as mock_list:
+            mock_list.return_value = (True, mock_users_data, None)
+            with self.assertRaises(BadRequest) as cm:
+                await callback_list_users(update, context)
+            self.assertIn("Chat not found", str(cm.exception))
 
 
 if __name__ == "__main__":

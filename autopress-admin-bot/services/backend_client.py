@@ -124,9 +124,17 @@ class BackendClient:
             err = "Unable to connect to AutoPress backend service. Please verify the service is running."
             logger.error("Connection error for %s", url)
             return False, None, err
-        except httpx.TimeoutException:
+        except httpx.ConnectTimeout:
+            err = "AutoPress backend connection timed out. Please verify service connectivity."
+            logger.error("Connect timeout establishing connection to %s", url)
+            return False, None, err
+        except httpx.ReadTimeout:
+            err = "AutoPress backend read timed out. The server took too long to respond."
+            logger.error("Read timeout waiting for response from %s", url)
+            return False, None, err
+        except httpx.TimeoutException as exc:
             err = "AutoPress backend request timed out. Please try again."
-            logger.error("Timeout connecting to %s", url)
+            logger.error("Timeout (%s) communicating with %s", type(exc).__name__, url)
             return False, None, err
         except Exception as exc:
             err = f"Unexpected backend communication error: {str(exc)}"
