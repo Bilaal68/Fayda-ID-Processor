@@ -182,6 +182,7 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_credits_user ON credit_transactions(user_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_credits_date ON credit_transactions(created_at);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_credits_payment ON credit_transactions(payment_id);")
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_credit_tx_payment_grant ON credit_transactions(payment_id) WHERE payment_id IS NOT NULL AND transaction_type = 'TOPUP_GRANT';")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_processing_user ON processing_records(user_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_processing_date ON processing_records(created_at);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_processing_request_id ON processing_records(request_id);")

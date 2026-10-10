@@ -37,7 +37,10 @@ class JobService:
             (success: bool, error_code_or_msg: Optional[str], pdf_bytes: Optional[bytes], remaining_balance: int)
         """
         job_id = f"job_{uuid.uuid4().hex[:12]}"
-        current_balance = credit_service.get_balance(telegram_user_id)
+        ok, current_balance, err = credit_service.get_authoritative_balance(telegram_user_id)
+        if not ok:
+            logger.warning("Job creation aborted: Backend balance check failed for %s: %s", telegram_user_id, err)
+            return False, "AUTHORITATIVE_BALANCE_UNAVAILABLE", None, current_balance
 
         # 1. Authoritative credit check
         if current_balance < 1:
@@ -77,6 +80,7 @@ class JobService:
         if not deduct_success:
             logger.error("Failed to deduct credit for completed job %s: %s", job_id, deduct_msg)
             JobRepository.update_status(job_id, "COMPLETED_UNBILLED", deduct_msg)
+            return False, "INSUFFICIENT_CREDITS", None, new_balance
         else:
             JobRepository.update_status(job_id, "COMPLETED")
             logger.info("Job %s successfully completed. New balance: %d", job_id, new_balance)

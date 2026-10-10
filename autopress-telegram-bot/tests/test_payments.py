@@ -43,6 +43,18 @@ class TestPaymentSystem(unittest.IsolatedAsyncioTestCase):
             cursor.execute("DELETE FROM credit_transactions WHERE user_id = (SELECT id FROM users WHERE telegram_user_id = ?)", (self.user_id,))
             cursor.execute("DELETE FROM payment_receipts WHERE telegram_user_id = ?", (self.user_id,))
 
+        from unittest.mock import patch
+        from services.autopress_api import autopress_api_client
+        self.patcher_submit = patch.object(
+            autopress_api_client,
+            "submit_payment_sync",
+            return_value=(True, {"status": "success"}, None)
+        )
+        self.patcher_submit.start()
+
+    def tearDown(self):
+        self.patcher_submit.stop()
+
     def test_payment_request_creation(self):
         """Test creating a PENDING payment request."""
         payment = payment_service.create_payment_request(
@@ -65,6 +77,9 @@ class TestPaymentSystem(unittest.IsolatedAsyncioTestCase):
 
     def test_admin_approve_payment_success_and_idempotency(self):
         """Test admin approving a payment request and ensuring idempotency."""
+        from unittest.mock import patch
+        from services.autopress_api import autopress_api_client
+
         payment = payment_service.create_payment_request(
             telegram_user_id=self.user_id,
             package_id="credits_50",
@@ -73,33 +88,40 @@ class TestPaymentSystem(unittest.IsolatedAsyncioTestCase):
         )
         payment_id = payment["id"]
 
-        # First approval: Success
-        success, msg, updated_payment, new_balance = payment_service.approve_payment(
-            payment_id=payment_id,
-            admin_id=7246416805
-        )
+        with patch.object(autopress_api_client, "approve_payment_sync", side_effect=[
+            (True, {"id": payment_id, "status": "APPROVED", "credits_requested": 50}, 50, None),
+            (False, {"id": payment_id, "status": "APPROVED"}, 50, "Payment already APPROVED")
+        ]):
+            # First approval: Success
+            success, msg, updated_payment, new_balance = payment_service.approve_payment(
+                payment_id=payment_id,
+                admin_id=7246416805
+            )
 
-        self.assertTrue(success)
-        self.assertEqual(new_balance, 50)
-        self.assertEqual(updated_payment["status"], "APPROVED")
+            self.assertTrue(success)
+            self.assertEqual(new_balance, 50)
+            self.assertEqual(updated_payment["status"], "APPROVED")
 
-        # Verify balance in database
-        bal = CreditRepository.get_balance(self.user_id)
-        self.assertEqual(bal, 50)
+            # Verify balance in database
+            bal = CreditRepository.get_balance(self.user_id)
+            self.assertEqual(bal, 50)
 
-        # Second approval: Must fail with idempotency guard
-        success2, msg2, updated_payment2, new_balance2 = payment_service.approve_payment(
-            payment_id=payment_id,
-            admin_id=7246416805
-        )
-        self.assertFalse(success2)
-        self.assertIn("already", msg2.lower())
+            # Second approval: Must fail with idempotency guard
+            success2, msg2, updated_payment2, new_balance2 = payment_service.approve_payment(
+                payment_id=payment_id,
+                admin_id=7246416805
+            )
+            self.assertFalse(success2)
+            self.assertIn("already", msg2.lower())
 
-        # Balance still 50
-        self.assertEqual(CreditRepository.get_balance(self.user_id), 50)
+            # Balance still 50
+            self.assertEqual(CreditRepository.get_balance(self.user_id), 50)
 
     def test_admin_reject_payment(self):
         """Test admin rejecting a payment request."""
+        from unittest.mock import patch
+        from services.autopress_api import autopress_api_client
+
         payment = payment_service.create_payment_request(
             telegram_user_id=self.user_id,
             package_id="credits_10",
@@ -108,17 +130,18 @@ class TestPaymentSystem(unittest.IsolatedAsyncioTestCase):
         )
         payment_id = payment["id"]
 
-        success, msg, updated_payment = payment_service.reject_payment(
-            payment_id=payment_id,
-            admin_id=7246416805
-        )
+        with patch.object(autopress_api_client, "reject_payment_sync", return_value=(True, {"id": payment_id, "status": "REJECTED"}, None)):
+            success, msg, updated_payment = payment_service.reject_payment(
+                payment_id=payment_id,
+                admin_id=7246416805
+            )
 
-        self.assertTrue(success)
-        self.assertEqual(updated_payment["status"], "REJECTED")
+            self.assertTrue(success)
+            self.assertEqual(updated_payment["status"], "REJECTED")
 
-        # Balance remains 0
-        bal = CreditRepository.get_balance(self.user_id)
-        self.assertEqual(bal, 0)
+            # Balance remains 0
+            bal = CreditRepository.get_balance(self.user_id)
+            self.assertEqual(bal, 0)
 
     def test_user_payment_history(self):
         """Test fetching a user's payment history."""
@@ -193,6 +216,27 @@ class TestPaymentSystem(unittest.IsolatedAsyncioTestCase):
         back_bal_text = update.effective_message.reply_text.call_args[0][0]
         self.assertIn("AutoPress Balance", back_bal_text)
         self.assertEqual(context.user_data["state"], ConversationState.IDLE.name)
+
+    def test_payment_approval_forwards_to_backend_api(self):
+        """Verify payment_service.approve_payment calls backend API and updates snapshot."""
+        from services.autopress_api import autopress_api_client
+
+        payment = payment_service.create_payment_request(
+            telegram_user_id=self.user_id,
+            package_id="credits_20",
+            payment_method="CBE",
+            screenshot_file_id="photo_file_20"
+        )
+        payment_id = payment["id"]
+
+        with patch.object(autopress_api_client, "approve_payment_sync", return_value=(True, {"id": payment_id, "status": "APPROVED"}, 120, None)):
+            success, msg, p_data, new_bal = payment_service.approve_payment(
+                payment_id=payment_id,
+                admin_id=7246416805
+            )
+            self.assertTrue(success)
+            self.assertEqual(new_bal, 120)
+            self.assertEqual(CreditRepository.get_balance(self.user_id), 120)
 
 
 if __name__ == "__main__":

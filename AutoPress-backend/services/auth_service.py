@@ -44,21 +44,65 @@ from services.firebase_service import verify_token as verify_firebase_id_token
 
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@autopress.com").strip().lower()
 
+def verify_service_secret(req=None) -> Tuple[bool, Optional[str], int]:
+    """
+    Validates machine-to-machine service secret header using constant-time comparison.
+    Fails closed if the secret is not configured on the backend.
+    Returns (is_valid: bool, error_message: Optional[str], status_code: int).
+    """
+    if req is None:
+        req = request
+
+    expected_service = os.environ.get("AUTOPRESS_SERVICE_SECRET", "").strip()
+    expected_admin = os.environ.get("AUTOPRESS_ADMIN_BOT_SECRET", "").strip()
+
+    if not expected_service and not expected_admin:
+        return False, "Service authentication is not configured on the server.", 403
+
+    service_secret = (
+        req.headers.get("X-Service-Secret", "") or
+        req.headers.get("X-Admin-Bot-Secret", "")
+    ).strip()
+
+    if not service_secret:
+        return False, "Service authentication secret is required.", 401
+
+    valid = False
+    if expected_service and hmac.compare_digest(service_secret, expected_service):
+        valid = True
+    elif expected_admin and hmac.compare_digest(service_secret, expected_admin):
+        valid = True
+
+    if not valid:
+        return False, "Invalid service authentication secret.", 403
+
+    return True, None, 200
+
+
 def get_current_user_from_request() -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Extracts Bearer token or dedicated admin bot service secret from request.
-    Verifies X-Admin-Bot-Secret header FIRST using hmac.compare_digest.
+    Verifies X-Admin-Bot-Secret or X-Service-Secret header FIRST using hmac.compare_digest.
     Verifies Firebase ID token for website clients.
     Falls back to legacy JWT token for seamless backward compatibility.
     Returns (user_dict, error_message).
     """
-    # 0. Dedicated Telegram Admin Bot Secret Check
-    admin_bot_secret = request.headers.get("X-Admin-Bot-Secret", "").strip()
+    # 0. Dedicated Telegram Admin Bot / Service Secret Check
+    admin_bot_secret = (
+        request.headers.get("X-Service-Secret", "") or
+        request.headers.get("X-Admin-Bot-Secret", "")
+    ).strip()
     if admin_bot_secret:
-        expected_secret = os.environ.get("AUTOPRESS_ADMIN_BOT_SECRET", "").strip()
-        if not expected_secret:
+        expected_service = os.environ.get("AUTOPRESS_SERVICE_SECRET", "").strip()
+        expected_admin = os.environ.get("AUTOPRESS_ADMIN_BOT_SECRET", "").strip()
+        if not expected_service and not expected_admin:
             return None, "Admin bot authentication is not configured on the server."
-        if not hmac.compare_digest(admin_bot_secret, expected_secret):
+        valid = False
+        if expected_service and hmac.compare_digest(admin_bot_secret, expected_service):
+            valid = True
+        elif expected_admin and hmac.compare_digest(admin_bot_secret, expected_admin):
+            valid = True
+        if not valid:
             return None, "Invalid admin bot secret."
 
         admin_user = UserModel.get_by_email(ADMIN_EMAIL)
@@ -160,5 +204,19 @@ def admin_required(f):
         if user.get("role") != "admin":
             return jsonify({"status": "error", "error": "Admin privileges required."}), 403
         g.current_user = user
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def service_secret_required(f):
+    """
+    Decorator requiring valid machine-to-machine service authentication secret.
+    Fails closed with 401 (if missing) or 403 (if invalid/unconfigured).
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        is_valid, err, status_code = verify_service_secret()
+        if not is_valid:
+            return jsonify({"status": "error", "error": err}), status_code
         return f(*args, **kwargs)
     return decorated_function

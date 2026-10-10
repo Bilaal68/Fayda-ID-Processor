@@ -14,7 +14,10 @@ logger = setup_logger(__name__)
 
 def _resolve_user_id(cursor, telegram_user_id: int) -> Optional[int]:
     """Helper to look up internal user_id from telegram_user_id."""
-    cursor.execute("SELECT id FROM users WHERE telegram_user_id = ?", (telegram_user_id,))
+    cursor.execute(
+        "SELECT id FROM users WHERE telegram_user_id = ? OR telegram_user_id = ?",
+        (telegram_user_id, str(telegram_user_id))
+    )
     row = cursor.fetchone()
     if row:
         return row["id"]
@@ -25,6 +28,52 @@ def _resolve_user_id(cursor, telegram_user_id: int) -> Optional[int]:
 
 class CreditRepository:
     """Repository handling credit balance queries and atomic ledger mutations in unified credit_transactions table."""
+
+    @staticmethod
+    def sync_balance_snapshot(telegram_user_id: int, authoritative_balance: int) -> int:
+        """
+        Synchronizes local SQLite ledger with authoritative balance from the backend.
+        If local balance differs from authoritative balance, inserts an AUTHORITATIVE_SYNC transaction.
+        """
+        try:
+            with db_transaction() as conn:
+                cursor = conn.cursor()
+                user_id = _resolve_user_id(cursor, telegram_user_id)
+                if not user_id:
+                    from database.repositories.user_repository import UserRepository
+                    user = UserRepository.get_or_create_user(telegram_user_id=telegram_user_id)
+                    user_id = user["id"]
+
+                cursor.execute(
+                    """
+                    SELECT balance_after FROM credit_transactions
+                    WHERE user_id = ?
+                    ORDER BY id DESC LIMIT 1
+                    """,
+                    (user_id,)
+                )
+                last_row = cursor.fetchone()
+                current_balance = last_row["balance_after"] if last_row else 0
+
+                delta = authoritative_balance - current_balance
+                if delta != 0:
+                    cursor.execute(
+                        """
+                        INSERT INTO credit_transactions (
+                            user_id, amount, transaction_type, reason,
+                            balance_after, admin_id, processing_id, payment_id
+                        ) VALUES (?, ?, 'AUTHORITATIVE_SYNC', 'Synchronized from backend central ledger', ?, NULL, NULL, NULL)
+                        """,
+                        (user_id, delta, authoritative_balance)
+                    )
+                    logger.info(
+                        "Synced user %s local balance snapshot: %d -> %d (delta: %+d)",
+                        telegram_user_id, current_balance, authoritative_balance, delta
+                    )
+                return authoritative_balance
+        except Exception as e:
+            logger.debug("Local balance snapshot sync notice: %s", e)
+            return authoritative_balance
 
     @staticmethod
     def get_balance(telegram_user_id: int) -> int:

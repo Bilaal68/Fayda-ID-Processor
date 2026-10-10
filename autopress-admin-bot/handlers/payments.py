@@ -325,15 +325,24 @@ async def callback_approve_execute(update: Update, context: ContextTypes.DEFAULT
 
     new_balance = res.get("new_balance", 0)
     credits_added = res.get("credits_added", 0)
+    notification_sent = res.get("notification_sent", False)
 
-    logger.info("Admin %s approved payment %s (+%d credits, new bal: %d)", admin_id, payment_id, credits_added, new_balance)
+    logger.info(
+        "Admin %s approved payment %s (+%d credits, new bal: %d, notified: %s)",
+        admin_id, payment_id, credits_added, new_balance, notification_sent
+    )
+
+    if notification_sent:
+        notif_msg = "The transaction has been committed and an automated receipt confirmation was sent to the user via Telegram."
+    else:
+        notif_msg = "The transaction has been committed. <i>(User was not notified via Telegram: TELEGRAM_BOT_TOKEN is not configured on the backend server)</i>"
 
     success_text = (
         f"✅ <b>Payment Approved Successfully</b>\n\n"
         f"• <b>Payment ID:</b> <code>{payment_id}</code>\n"
         f"• <b>Credits Granted:</b> <b>+{credits_added} credits</b>\n"
         f"• <b>User New Balance:</b> <code>{new_balance}</code> credits\n\n"
-        f"The transaction has been committed and an automated receipt confirmation was sent to the user."
+        f"{notif_msg}"
     )
 
     keyboard = [
@@ -396,12 +405,18 @@ async def handle_payment_rejection_reason_input(update: Update, context: Context
         )
         return
 
+    notification_sent = res.get("notification_sent", False)
+    if notification_sent:
+        notif_msg = "The payment record has been marked as rejected and an automated notification was sent to the user via Telegram."
+    else:
+        notif_msg = "The payment record has been marked as rejected. <i>(User was not notified via Telegram: TELEGRAM_BOT_TOKEN is not configured on the backend server)</i>"
+
     success_text = (
         f"❌ <b>Payment Rejected</b>\n\n"
         f"• <b>Payment ID:</b> <code>{payment_id}</code>\n"
         f"• <b>Status:</b> <b>REJECTED</b> (0 credits issued)\n"
         f"• <b>Recorded Reason:</b> <i>{html.escape(reason)}</i>\n\n"
-        f"The payment record has been marked as rejected."
+        f"{notif_msg}"
     )
 
     keyboard = [

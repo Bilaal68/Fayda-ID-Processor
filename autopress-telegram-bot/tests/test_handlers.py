@@ -278,7 +278,7 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         args, _ = update.effective_message.reply_text.call_args
         self.assertIn("🛒 Buy Credits", args[0])
 
-    @patch("handlers.upload.credit_service.get_balance", return_value=3)
+    @patch("handlers.upload.credit_service.get_authoritative_balance", return_value=(True, 3, None))
     @patch("handlers.upload.user_service.get_or_create_user")
     async def test_upload_init_with_credits(self, mock_user, mock_balance):
         """Verify Upload button transitions to WAITING_FOR_PDF when user has balance."""
@@ -292,7 +292,7 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         args, kwargs = update.effective_message.reply_text.call_args
         self.assertIn("Please send your Fayda ID PDF", args[0])
 
-    @patch("handlers.upload.credit_service.get_balance", return_value=0)
+    @patch("handlers.upload.credit_service.get_authoritative_balance", return_value=(True, 0, None))
     @patch("handlers.upload.user_service.get_or_create_user")
     async def test_upload_init_zero_credits_prompts_buy_credits(self, mock_user, mock_balance):
         """Verify Upload button prompts user to buy credits when balance is 0."""

@@ -45,7 +45,15 @@ async def upload_init_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
 
-    balance = credit_service.get_balance(user_id)
+    ok, balance, err = credit_service.get_authoritative_balance(user_id)
+    if not ok:
+        await update.effective_message.reply_text(
+            "⚠️ Unable to verify credit balance with the server.\n\n"
+            "Please try again in a moment.",
+            reply_markup=get_main_menu_keyboard()
+        )
+        return
+
     logger.info("User %s initiated upload flow. Current balance: %d", user_id, balance)
 
     context.user_data.pop("selected_package", None)
@@ -153,7 +161,15 @@ async def document_upload_handler(update: Update, context: ContextTypes.DEFAULT_
         return
 
     # 5. Authoritative credit check before downloading or heavy processing
-    balance = credit_service.get_balance(user_id)
+    ok, balance, err = credit_service.get_authoritative_balance(user_id)
+    if not ok:
+        await update.effective_message.reply_text(
+            "⚠️ Unable to verify credit balance with the server.\n\n"
+            "Please try again in a moment.",
+            reply_markup=get_cancel_keyboard() if current_state == ConversationState.WAITING_FOR_PDF.name else get_main_menu_keyboard()
+        )
+        return
+
     if balance < 1:
         context.user_data["state"] = ConversationState.IDLE.name
         await update.effective_message.reply_text(

@@ -588,6 +588,20 @@ def process_queue():
 @fayda_bp.route('/process-pdf-template', methods=['POST'])
 def process_pdf_template():
 
+    # Check for service authentication secret
+    service_secret_header = (
+        request.headers.get("X-Service-Secret", "") or
+        request.headers.get("X-Admin-Bot-Secret", "")
+    ).strip()
+
+    bypass_deduction = False
+    if service_secret_header:
+        from services.auth_service import verify_service_secret
+        is_valid, err, status_code = verify_service_secret(request)
+        if not is_valid:
+            return jsonify({'error': err}), status_code
+        bypass_deduction = True
+
     # Step 1 — Verify token
     try:
         user_id = verify_token(request)
@@ -624,17 +638,6 @@ def process_pdf_template():
     # STEP 4 — CREDIT CHECK AND DEDUCTION FOR PDF MODE
     template_count = len(pdf_files)
     credit_cost = CREDIT_COST[template_count]
-    current_credits = get_user_credits(uid)
-
-    print(f"💳 User [{uid}] credits: {current_credits} | Cost: {credit_cost}")
-
-    if current_credits < credit_cost:
-        return jsonify({
-            'status':           'error',
-            'message':          f'Insufficient credits. You have {current_credits} but need {credit_cost}',
-            'current_credits':  current_credits,
-            'required_credits': credit_cost,
-        }), 402
 
     # Create processing record
     req_id = f"pdf_{int(datetime.now(timezone.utc).timestamp() * 1000)}"
@@ -642,23 +645,37 @@ def process_pdf_template():
         user_id=uid,
         processing_type="pdf_template",
         document_count=template_count,
-        credit_cost=credit_cost,
+        credit_cost=0 if bypass_deduction else credit_cost,
         request_id=req_id
     )
 
-    # Deduct credits
-    success, result = deduct_credits(
-        user_id=uid,
-        amount=credit_cost,
-        reason=f"Fayda PDF Processing ({template_count} cards)",
-        processing_id=proc_record_id
-    )
-    if not success:
-        ProcessingRecordModel.mark_failed(proc_record_id, str(result))
-        return jsonify({'error': result}), 402
+    if not bypass_deduction:
+        current_credits = get_user_credits(uid)
+        print(f"💳 User [{uid}] credits: {current_credits} | Cost: {credit_cost}")
 
-    remaining_credits = result
-    print(f"✅ Credits deducted. Remaining: {remaining_credits}")
+        if current_credits < credit_cost:
+            return jsonify({
+                'status':           'error',
+                'message':          f'Insufficient credits. You have {current_credits} but need {credit_cost}',
+                'current_credits':  current_credits,
+                'required_credits': credit_cost,
+            }), 402
+
+        # Deduct credits
+        success, result = deduct_credits(
+            user_id=uid,
+            amount=credit_cost,
+            reason=f"Fayda PDF Processing ({template_count} cards)",
+            processing_id=proc_record_id
+        )
+        if not success:
+            ProcessingRecordModel.mark_failed(proc_record_id, str(result))
+            return jsonify({'error': result}), 402
+
+        remaining_credits = result
+        print(f"✅ Credits deducted. Remaining: {remaining_credits}")
+    else:
+        print(f"⚡ Service secret verified: bypassed backend deduction from user [{uid}] (authoritative bot credits handled upstream).")
 
     # Step 5 — Extract data from each PDF
     from services.gemini import extract_from_pdf
@@ -683,13 +700,14 @@ def process_pdf_template():
         except Exception as e:
             print(f"  ❌ PDF {i+1} extraction failed: {e}")
             print(traceback.format_exc())
-            # Refund credits if extraction fails
-            deduct_credits(
-                user_id=uid,
-                amount=-credit_cost,
-                reason=f"Refund: extraction error on PDF {i+1}",
-                processing_id=proc_record_id
-            )
+            # Refund credits if extraction fails (only if deducted here)
+            if not bypass_deduction:
+                deduct_credits(
+                    user_id=uid,
+                    amount=-credit_cost,
+                    reason=f"Refund: extraction error on PDF {i+1}",
+                    processing_id=proc_record_id
+                )
             ProcessingRecordModel.mark_failed(proc_record_id, f"Extraction failed on PDF {i+1}: {str(e)}")
             return jsonify({
                 'error': f'Failed to extract data from PDF {i+1}: {str(e)}'
@@ -706,13 +724,14 @@ def process_pdf_template():
     except Exception as e:
         print(f"❌ PNG generation failed: {e}")
         print(traceback.format_exc())
-        # Refund credits if generation fails
-        deduct_credits(
-            user_id=uid,
-            amount=-credit_cost,
-            reason="Refund: PNG generation error",
-            processing_id=proc_record_id
-        )
+        # Refund credits if generation fails (only if deducted here)
+        if not bypass_deduction:
+            deduct_credits(
+                user_id=uid,
+                amount=-credit_cost,
+                reason="Refund: PNG generation error",
+                processing_id=proc_record_id
+            )
         ProcessingRecordModel.mark_failed(proc_record_id, f"PNG generation failed: {str(e)}")
         return jsonify({'error': f'PNG generation failed: {str(e)}'}), 500
 

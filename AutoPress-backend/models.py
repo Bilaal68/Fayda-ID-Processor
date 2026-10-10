@@ -437,10 +437,12 @@ class CreditLedgerModel:
         reason: str,
         admin_id: Optional[int] = None,
         processing_id: Optional[int] = None,
-        payment_id: Optional[str] = None
+        payment_id: Optional[str] = None,
+        job_id: Optional[str] = None
     ) -> Tuple[bool, str, int]:
         """
         Atomically records a credit transaction with immediate row locking.
+        Guarantees idempotency when job_id or payment_id is provided.
         Returns: (success: bool, message: str, new_balance: int)
         """
         with db_transaction() as conn:
@@ -458,6 +460,29 @@ class CreditLedgerModel:
             last_row = cursor.fetchone()
             current_balance = last_row["balance_after"] if last_row else 0
 
+            # Idempotency check for jobs
+            if job_id:
+                if amount < 0:
+                    cursor.execute(
+                        """
+                        SELECT id FROM credit_transactions
+                        WHERE user_id = ? AND job_id = ? AND amount < 0
+                        """,
+                        (user_id, job_id)
+                    )
+                    if cursor.fetchone():
+                        return True, "Idempotent: deduction already recorded", current_balance
+                elif transaction_type == "PROCESSING_REFUND":
+                    cursor.execute(
+                        """
+                        SELECT id FROM credit_transactions
+                        WHERE user_id = ? AND job_id = ? AND transaction_type = 'PROCESSING_REFUND'
+                        """,
+                        (user_id, job_id)
+                    )
+                    if cursor.fetchone():
+                        return True, "Idempotent: refund already recorded", current_balance
+
             new_balance = current_balance + amount
 
             # Prevent negative balances
@@ -469,10 +494,10 @@ class CreditLedgerModel:
                 """
                 INSERT INTO credit_transactions (
                     user_id, amount, transaction_type, reason,
-                    balance_after, admin_id, processing_id, payment_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    balance_after, admin_id, processing_id, payment_id, job_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (user_id, amount, transaction_type, reason, new_balance, admin_id, processing_id, payment_id)
+                (user_id, amount, transaction_type, reason, new_balance, admin_id, processing_id, payment_id, job_id)
             )
 
             return True, "Success", new_balance
@@ -671,6 +696,10 @@ class PaymentModel:
     ) -> Dict[str, Any]:
         with db_session() as conn:
             cursor = conn.cursor()
+            cursor.execute("SELECT id FROM payment_receipts WHERE id = ?", (payment_id,))
+            if cursor.fetchone():
+                return PaymentModel.get_by_id(payment_id)
+
             cursor.execute(
                 """
                 INSERT INTO payment_receipts (
@@ -786,6 +815,18 @@ class PaymentModel:
         """
         from services.telegram_service import send_telegram_notification
 
+        # Pre-resolve Telegram user outside transaction to prevent SQLite connection lock contention
+        pre_payment = PaymentModel.get_by_id(payment_id)
+        if not pre_payment:
+            return False, "Payment request not found.", None, 0
+
+        pre_tg_id = pre_payment.get("telegram_user_id")
+        if pre_tg_id:
+            UserModel.get_or_create_telegram_user(
+                telegram_user_id=pre_tg_id,
+                username=pre_payment.get("telegram_username") or ""
+            )
+
         with db_transaction() as conn:
             cursor = conn.cursor()
 
@@ -811,22 +852,30 @@ class PaymentModel:
             if payment["status"] != "PENDING":
                 return False, f"Payment is in '{payment['status']}' state.", payment, 0
 
-            # 3. Resolve target AutoPress user
+            # 3. Resolve target AutoPress user on current connection
             target_user_id = payment.get("user_id")
-            if not target_user_id and payment.get("telegram_user_id"):
-                tg_user = UserModel.get_or_create_telegram_user(
-                    telegram_user_id=payment["telegram_user_id"],
-                    username=payment.get("telegram_username") or ""
-                )
-                target_user_id = tg_user["id"]
-                # Link user_id to payment
-                cursor.execute(
-                    "UPDATE payment_receipts SET user_id = ? WHERE id = ?",
-                    (target_user_id, payment_id)
-                )
+            tg_id = payment.get("telegram_user_id")
+            if tg_id:
+                cursor.execute("SELECT id FROM users WHERE telegram_user_id = ?", (tg_id,))
+                u_row = cursor.fetchone()
+                if u_row:
+                    target_user_id = u_row["id"]
+                    cursor.execute(
+                        "UPDATE payment_receipts SET user_id = ? WHERE id = ?",
+                        (target_user_id, payment_id)
+                    )
 
             if not target_user_id:
                 target_user_id = admin_id
+
+            # Secondary idempotency check: verify credit was not already granted for this payment
+            cursor.execute(
+                "SELECT id FROM credit_transactions WHERE payment_id = ? AND transaction_type = 'TOPUP_GRANT'",
+                (payment_id,)
+            )
+            if cursor.fetchone():
+                bal = CreditLedgerModel.get_balance(target_user_id)
+                return False, "Credits for this payment have already been granted.", payment, bal
 
             # 4. Mark payment as APPROVED
             cursor.execute(
@@ -869,6 +918,7 @@ class PaymentModel:
             )
 
         # 6. Dispatch Telegram notification (non-blocking / outside tx lock)
+        notification_sent = False
         tg_id = payment.get("telegram_user_id")
         if tg_id:
             user_notify_text = (
@@ -877,9 +927,11 @@ class PaymentModel:
                 f"💰 *Current Balance:* {new_balance} credits.\n\n"
                 "Thank you for using AutoPress! You can now upload and process your Fayda PDFs."
             )
-            send_telegram_notification(tg_id, user_notify_text)
+            notification_sent = bool(send_telegram_notification(tg_id, user_notify_text))
 
         updated = PaymentModel.get_by_id(payment_id)
+        if updated:
+            updated["notification_sent"] = notification_sent
         return True, f"Payment successfully approved. +{credits_to_add} credits added.", updated, new_balance
 
     @staticmethod
@@ -929,6 +981,7 @@ class PaymentModel:
             )
 
         # 4. Dispatch Telegram notification (outside tx lock)
+        notification_sent = False
         tg_id = payment.get("telegram_user_id")
         if tg_id:
             user_notify_text = (
@@ -937,9 +990,11 @@ class PaymentModel:
                 f"Reason: {clean_reason}\n\n"
                 "No credits were added. If you have questions, please contact support."
             )
-            send_telegram_notification(tg_id, user_notify_text)
+            notification_sent = bool(send_telegram_notification(tg_id, user_notify_text))
 
         updated = PaymentModel.get_by_id(payment_id)
+        if updated:
+            updated["notification_sent"] = notification_sent
         return True, "Payment request successfully rejected.", updated
 
 

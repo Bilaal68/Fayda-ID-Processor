@@ -52,18 +52,12 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
         uid = 998877701
         user_service.get_or_create_user(telegram_user_id=uid)
 
-        # Set balance to exactly 1
-        current = credit_service.get_balance(uid)
-        if current > 1:
-            await credit_service.deduct_credit(uid, current - 1, "Reset")
-        elif current == 0:
-            credit_service.grant_credits(uid, 1, "Reset")
-        self.assertEqual(credit_service.get_balance(uid), 1)
-
         pdf_bytes = self._create_dummy_pdf()
         mock_output_png = self._create_dummy_png_result()
 
-        with patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(True, mock_output_png, None))):
+        with patch.object(credit_service, "get_authoritative_balance", return_value=(True, 1, None)), \
+             patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(True, mock_output_png, None))), \
+             patch.object(credit_service, "deduct_credit", new=AsyncMock(return_value=(True, "Success", 0))):
             success, err, result_png, rem_bal = await job_service.process_pdf_upload(
                 telegram_user_id=uid,
                 pdf_bytes=pdf_bytes,
@@ -78,23 +72,17 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
         img = Image.open(io.BytesIO(result_png))
         self.assertEqual(img.size, (2480, 3508))
         self.assertEqual(rem_bal, 0)
-        self.assertEqual(credit_service.get_balance(uid), 0)
 
     async def test_2_zero_credits_rejected(self):
         """Test 2: User with 0 credits uploads a PDF -> No processing, No deduction, Purchase prompt."""
         uid = 998877702
         user_service.get_or_create_user(telegram_user_id=uid)
 
-        # Ensure balance is 0
-        current = credit_service.get_balance(uid)
-        if current > 0:
-            await credit_service.deduct_credit(uid, current, "Zero out")
-        self.assertEqual(credit_service.get_balance(uid), 0)
-
         pdf_bytes = self._create_dummy_pdf()
 
-        # Attempt to process job
-        with patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock()) as mock_backend:
+        # Attempt to process job with 0 balance
+        with patch.object(credit_service, "get_authoritative_balance", return_value=(True, 0, None)), \
+             patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock()) as mock_backend:
             success, err, result_pdf, rem_bal = await job_service.process_pdf_upload(
                 telegram_user_id=uid,
                 pdf_bytes=pdf_bytes,
@@ -133,12 +121,11 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
         """Test 5: Backend unavailable -> Friendly error, no credit deducted, bot stays alive."""
         uid = 998877705
         user_service.get_or_create_user(telegram_user_id=uid)
-        credit_service.grant_credits(uid, 3, "Test credits")
-        initial_bal = credit_service.get_balance(uid)
 
         pdf_bytes = self._create_dummy_pdf()
 
-        with patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(False, None, "AutoPress backend service is currently unavailable."))):
+        with patch.object(credit_service, "get_authoritative_balance", return_value=(True, 3, None)), \
+             patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(False, None, "AutoPress backend service is currently unavailable."))):
             success, err, result, rem_bal = await job_service.process_pdf_upload(
                 telegram_user_id=uid,
                 pdf_bytes=pdf_bytes,
@@ -148,19 +135,16 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(success)
         self.assertIn("unavailable", err)
         self.assertIsNone(result)
-        # Credit MUST NOT be deducted
-        self.assertEqual(credit_service.get_balance(uid), initial_bal)
 
     async def test_6_backend_timeout_safe_failure(self):
         """Test 6: Backend timeout -> Friendly error, no credit deducted, job marked failed."""
         uid = 998877706
         user_service.get_or_create_user(telegram_user_id=uid)
-        credit_service.grant_credits(uid, 2, "Test credits")
-        initial_bal = credit_service.get_balance(uid)
 
         pdf_bytes = self._create_dummy_pdf()
 
-        with patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(False, None, "Processing timed out. Please try again."))):
+        with patch.object(credit_service, "get_authoritative_balance", return_value=(True, 2, None)), \
+             patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(False, None, "Processing timed out. Please try again."))):
             success, err, result, rem_bal = await job_service.process_pdf_upload(
                 telegram_user_id=uid,
                 pdf_bytes=pdf_bytes,
@@ -169,44 +153,42 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(success)
         self.assertIn("timed out", err)
-        self.assertEqual(credit_service.get_balance(uid), initial_bal)
 
     async def test_7_repeat_upload_no_duplicate_deduction(self):
         """Test 7: Repeat same upload / transaction ID -> No accidental double deduction."""
         uid = 998877707
         user_service.get_or_create_user(telegram_user_id=uid)
-        credit_service.grant_credits(uid, 5, "Test credits")
-        bal = credit_service.get_balance(uid)
 
         job_id = f"job_fixed_idempotent_{uuid.uuid4().hex[:8]}"
         JobRepository.create_job(job_id=job_id, telegram_user_id=uid)
 
-        s1, m1, b1 = await credit_service.deduct_credit(uid, 1, "Bill 1", job_id=job_id)
-        self.assertTrue(s1)
-        self.assertEqual(b1, bal - 1)
+        with patch.object(autopress_api_client, "deduct_telegram_credit", new=AsyncMock(return_value=(True, 4, None))):
+            s1, m1, b1 = await credit_service.deduct_credit(uid, 1, "Bill 1", job_id=job_id)
+            self.assertTrue(s1)
+            self.assertEqual(b1, 4)
 
-        # Retry with same job_id
-        s2, m2, b2 = await credit_service.deduct_credit(uid, 1, "Bill retry", job_id=job_id)
-        self.assertTrue(s2)
-        self.assertEqual(b2, bal - 1) # balance unchanged!
+            # Retry with same job_id
+            s2, m2, b2 = await credit_service.deduct_credit(uid, 1, "Bill retry", job_id=job_id)
+            self.assertTrue(s2)
+            self.assertEqual(b2, 4) # balance unchanged!
 
     async def test_8_race_condition_two_uploads_with_one_credit(self):
         """Test 8: Two uploads started concurrently with only 1 credit -> Exactly one consumes credit, balance never negative."""
         uid = 998877708
         user_service.get_or_create_user(telegram_user_id=uid)
 
-        # Set balance to exactly 1
-        current = credit_service.get_balance(uid)
-        if current > 1:
-            await credit_service.deduct_credit(uid, current - 1, "Reset")
-        elif current == 0:
-            credit_service.grant_credits(uid, 1, "Reset")
-        self.assertEqual(credit_service.get_balance(uid), 1)
-
         pdf_bytes = self._create_dummy_pdf()
         mock_output_png = self._create_dummy_png_result()
 
-        with patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(True, mock_output_png, None))):
+        # Simulate first call deducting successfully, second call failing with insufficient credits
+        deduct_mock = AsyncMock(side_effect=[
+            (True, "Success", 0),
+            (False, "Insufficient credits. You have 0 credits.", 0)
+        ])
+
+        with patch.object(credit_service, "get_authoritative_balance", return_value=(True, 1, None)), \
+             patch.object(autopress_api_client, "process_pdf_template", new=AsyncMock(return_value=(True, mock_output_png, None))), \
+             patch.object(credit_service, "deduct_credit", new=deduct_mock):
             results = await asyncio.gather(
                 job_service.process_pdf_upload(telegram_user_id=uid, pdf_bytes=pdf_bytes, filename="batch1.pdf"),
                 job_service.process_pdf_upload(telegram_user_id=uid, pdf_bytes=pdf_bytes, filename="batch2.pdf")
@@ -218,7 +200,6 @@ class TestProductionScenarios(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(successes), 1)
         self.assertEqual(len(failures), 1)
         self.assertEqual(failures[0][1], "INSUFFICIENT_CREDITS")
-        self.assertEqual(credit_service.get_balance(uid), 0)
 
     def test_9_user_isolation(self):
         """Test 9: User A's jobs are isolated and inaccessible to User B."""

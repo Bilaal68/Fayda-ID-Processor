@@ -485,12 +485,15 @@ def approve_admin_payment(payment_id: str):
             'current_balance': new_balance
         }), 400
 
+    notification_sent = payment_data.get('notification_sent', False) if isinstance(payment_data, dict) else False
+
     return jsonify({
         'status': 'success',
         'message': message,
         'data': payment_data,
         'new_balance': new_balance,
-        'credits_added': payment_data['credits_requested']
+        'credits_added': payment_data['credits_requested'] if isinstance(payment_data, dict) else 0,
+        'notification_sent': notification_sent
     }), 200
 
 
@@ -520,8 +523,11 @@ def reject_admin_payment(payment_id: str):
             'data': payment_data
         }), 400
 
+    notification_sent = payment_data.get('notification_sent', False) if isinstance(payment_data, dict) else False
+
     return jsonify({
         'status': 'success',
         'message': message,
-        'data': payment_data
+        'data': payment_data,
+        'notification_sent': notification_sent
     }), 200

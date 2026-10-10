@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, g
 from models import UserModel, CreditLedgerModel, ProcessingRecordModel
-from services.auth_service import login_required
+from services.auth_service import login_required, service_secret_required
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/user')
 
@@ -84,6 +84,7 @@ def get_processing_history():
 
 
 @user_bp.route('/telegram/sync', methods=['POST'])
+@service_secret_required
 def sync_telegram_user():
     """
     Sync endpoint called when a Telegram user starts or interacts with the bot.
@@ -119,4 +120,123 @@ def sync_telegram_user():
         'message': 'Telegram user synchronized successfully.',
         'user': user,
         'current_balance': current_balance
+    }), 200
+
+
+@user_bp.route('/telegram/<int:telegram_user_id>/balance', methods=['GET'])
+@service_secret_required
+def get_telegram_user_balance(telegram_user_id: int):
+    """
+    Authoritative balance endpoint for a Telegram user.
+    Auto-provisions the user if not yet seen, and returns current balance.
+    """
+    if not telegram_user_id:
+        return jsonify({'status': 'error', 'error': 'Invalid telegram_user_id.'}), 400
+
+    user = UserModel.get_or_create_telegram_user(telegram_user_id=telegram_user_id)
+    current_balance = CreditLedgerModel.get_balance(user['id'])
+
+    return jsonify({
+        'status': 'success',
+        'telegram_user_id': telegram_user_id,
+        'user_id': user['id'],
+        'balance': current_balance
+    }), 200
+
+
+@user_bp.route('/telegram/<int:telegram_user_id>/deduct', methods=['POST'])
+@service_secret_required
+def deduct_telegram_user_credit(telegram_user_id: int):
+    """
+    Atomically deducts credits from a Telegram user's authoritative balance.
+    Ensures idempotency when job_id is provided.
+    """
+    if not telegram_user_id:
+        return jsonify({'status': 'error', 'error': 'Invalid telegram_user_id.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    amount = data.get('amount', 1)
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            raise ValueError()
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'error': 'amount must be a positive integer.'}), 400
+
+    reason = data.get('reason', 'Fayda PDF Processing')
+    job_id = data.get('job_id')
+
+    user = UserModel.get_or_create_telegram_user(telegram_user_id=telegram_user_id)
+    success, message, new_balance = CreditLedgerModel.record_transaction(
+        user_id=user['id'],
+        amount=-amount,
+        transaction_type='PROCESSING_DEDUCTION',
+        reason=reason,
+        job_id=job_id
+    )
+
+    if not success:
+        return jsonify({
+            'status': 'error',
+            'error': message,
+            'telegram_user_id': telegram_user_id,
+            'current_balance': new_balance
+        }), 400
+
+    return jsonify({
+        'status': 'success',
+        'message': message,
+        'telegram_user_id': telegram_user_id,
+        'user_id': user['id'],
+        'new_balance': new_balance,
+        'deducted': amount
+    }), 200
+
+
+@user_bp.route('/telegram/<int:telegram_user_id>/refund', methods=['POST'])
+@service_secret_required
+def refund_telegram_user_credit(telegram_user_id: int):
+    """
+    Atomically refunds credits to a Telegram user's authoritative balance.
+    Ensures idempotency when job_id is provided.
+    """
+    if not telegram_user_id:
+        return jsonify({'status': 'error', 'error': 'Invalid telegram_user_id.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    amount = data.get('amount', 1)
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            raise ValueError()
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'error': 'amount must be a positive integer.'}), 400
+
+    reason = data.get('reason', 'Processing failure refund')
+    job_id = data.get('job_id')
+
+    user = UserModel.get_or_create_telegram_user(telegram_user_id=telegram_user_id)
+    success, message, new_balance = CreditLedgerModel.record_transaction(
+        user_id=user['id'],
+        amount=amount,
+        transaction_type='PROCESSING_REFUND',
+        reason=reason,
+        job_id=job_id
+    )
+
+    if not success:
+        return jsonify({
+            'status': 'error',
+            'error': message,
+            'telegram_user_id': telegram_user_id,
+            'current_balance': new_balance
+        }), 400
+
+    return jsonify({
+        'status': 'success',
+        'message': message,
+        'telegram_user_id': telegram_user_id,
+        'user_id': user['id'],
+        'new_balance': new_balance,
+        'refunded': amount
     }), 200

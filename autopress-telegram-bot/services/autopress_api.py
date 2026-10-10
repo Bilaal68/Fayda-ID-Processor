@@ -60,10 +60,8 @@ class AutoPressAPIClient:
         """
         url = f"{self.base_url}/process-pdf-template"
         token = self.generate_auth_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "image/png, application/pdf, application/json"
-        }
+        headers = self._get_service_headers()
+        headers["Accept"] = "image/png, application/pdf, application/json"
 
         files = {
             "pdf_1": (filename, pdf_bytes, "application/pdf")
@@ -100,6 +98,202 @@ class AutoPressAPIClient:
         except Exception as e:
             logger.error("Unexpected error during backend request: %s", e)
             return False, None, f"Service error: {str(e)}"
+
+    def _get_service_headers(self) -> Dict[str, str]:
+        """Returns service authentication headers for machine-to-machine backend endpoints."""
+        headers: Dict[str, str] = {}
+        secret = (
+            getattr(settings, "AUTOPRESS_SERVICE_SECRET", "") or
+            getattr(settings, "AUTOPRESS_ADMIN_BOT_SECRET", "")
+        )
+        if secret:
+            headers["X-Service-Secret"] = secret
+            headers["X-Admin-Bot-Secret"] = secret
+        token = self.generate_auth_token(role="admin")
+        headers["Authorization"] = f"Bearer {token}"
+        return headers
+
+    def _get_admin_headers(self) -> Dict[str, str]:
+        """Returns authentication headers suitable for backend admin endpoints."""
+        return self._get_service_headers()
+
+    def get_telegram_balance_sync(self, telegram_user_id: int) -> Tuple[bool, int, Optional[str]]:
+        """
+        Synchronously fetches authoritative credit balance for a Telegram user.
+        Fast timeout (2.5s) to avoid blocking Telegram command handlers.
+        """
+        url = f"{self.base_url}/api/user/telegram/{telegram_user_id}/balance"
+        headers = self._get_service_headers()
+        try:
+            with httpx.Client(timeout=2.5) as client:
+                resp = client.get(url, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                return True, int(data.get("balance", 0)), None
+            return False, 0, f"HTTP {resp.status_code}: {resp.text[:100]}"
+        except Exception as e:
+            logger.debug("Failed to fetch balance sync from backend for user %s: %s", telegram_user_id, e)
+            return False, 0, str(e)
+
+    async def get_telegram_balance(self, telegram_user_id: int) -> Tuple[bool, int, Optional[str]]:
+        """Asynchronously fetches authoritative credit balance for a Telegram user."""
+        url = f"{self.base_url}/api/user/telegram/{telegram_user_id}/balance"
+        headers = self._get_service_headers()
+        try:
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                return True, int(data.get("balance", 0)), None
+            return False, 0, f"HTTP {resp.status_code}: {resp.text[:100]}"
+        except Exception as e:
+            logger.debug("Failed to fetch balance async from backend for user %s: %s", telegram_user_id, e)
+            return False, 0, str(e)
+
+    async def deduct_telegram_credit(
+        self,
+        telegram_user_id: int,
+        amount: int = 1,
+        reason: str = "Fayda PDF Processing",
+        job_id: Optional[str] = None
+    ) -> Tuple[bool, int, Optional[str]]:
+        """Atomically deducts credits on the backend."""
+        url = f"{self.base_url}/api/user/telegram/{telegram_user_id}/deduct"
+        headers = self._get_service_headers()
+        payload = {"amount": amount, "reason": reason, "job_id": job_id}
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+            data = resp.json() if resp.status_code in (200, 400) else {}
+            if resp.status_code == 200:
+                return True, int(data.get("new_balance", 0)), None
+            err = data.get("error") or f"HTTP {resp.status_code}"
+            return False, int(data.get("current_balance", 0)), err
+        except Exception as e:
+            logger.debug("Backend credit deduction failed for user %s: %s", telegram_user_id, e)
+            return False, 0, str(e)
+
+    async def refund_telegram_credit(
+        self,
+        telegram_user_id: int,
+        amount: int = 1,
+        reason: str = "Processing failure refund",
+        job_id: Optional[str] = None
+    ) -> Tuple[bool, int, Optional[str]]:
+        """Atomically refunds credits on the backend."""
+        url = f"{self.base_url}/api/user/telegram/{telegram_user_id}/refund"
+        headers = self._get_service_headers()
+        payload = {"amount": amount, "reason": reason, "job_id": job_id}
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+            data = resp.json() if resp.status_code in (200, 400) else {}
+            if resp.status_code == 200:
+                return True, int(data.get("new_balance", 0)), None
+            err = data.get("error") or f"HTTP {resp.status_code}"
+            return False, int(data.get("current_balance", 0)), err
+        except Exception as e:
+            logger.debug("Backend credit refund failed for user %s: %s", telegram_user_id, e)
+            return False, 0, str(e)
+
+    def submit_payment_sync(
+        self,
+        payment_id: str,
+        telegram_user_id: int,
+        telegram_username: Optional[str],
+        package_id: str,
+        credits_requested: int,
+        amount_etb: float,
+        payment_method: str,
+        screenshot_file_id: Optional[str] = None,
+        screenshot_url: Optional[str] = None
+    ) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
+        """Synchronously records a pending payment request on the backend."""
+        url = f"{self.base_url}/api/payments/telegram"
+        headers = self._get_service_headers()
+        payload = {
+            "payment_id": payment_id,
+            "telegram_user_id": telegram_user_id,
+            "telegram_username": telegram_username or "",
+            "package_id": package_id,
+            "credits_requested": credits_requested,
+            "amount_etb": amount_etb,
+            "payment_method": payment_method,
+            "screenshot_file_id": screenshot_file_id,
+            "screenshot_url": screenshot_url
+        }
+        try:
+            with httpx.Client(timeout=4.0) as client:
+                resp = client.post(url, headers=headers, json=payload)
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                return True, data.get("data"), None
+            return False, None, f"HTTP {resp.status_code}: {resp.text[:100]}"
+        except Exception as e:
+            logger.debug("Backend payment submission notice for %s: %s", payment_id, e)
+            return False, None, str(e)
+
+    async def approve_payment(
+        self,
+        payment_id: str
+    ) -> Tuple[bool, Optional[Dict[str, Any]], int, Optional[str]]:
+        """Calls authoritative backend endpoint to approve payment and grant credits."""
+        url = f"{self.base_url}/api/admin/payments/{payment_id}/approve"
+        headers = self._get_admin_headers()
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, headers=headers)
+            data = resp.json() if resp.status_code in (200, 400) else {}
+            if resp.status_code == 200:
+                return True, data.get("data"), int(data.get("new_balance", 0)), None
+            err = data.get("error") or f"HTTP {resp.status_code}"
+            current_bal = int(data.get("current_balance", 0))
+            return False, data.get("data"), current_bal, err
+        except Exception as e:
+            logger.error("Backend payment approval error for %s: %s", payment_id, e)
+            return False, None, 0, str(e)
+
+    def approve_payment_sync(
+        self,
+        payment_id: str
+    ) -> Tuple[bool, Optional[Dict[str, Any]], int, Optional[str]]:
+        """Synchronously calls authoritative backend endpoint to approve payment and grant credits."""
+        url = f"{self.base_url}/api/admin/payments/{payment_id}/approve"
+        headers = self._get_admin_headers()
+        try:
+            with httpx.Client(timeout=6.0) as client:
+                resp = client.post(url, headers=headers)
+            data = resp.json() if resp.status_code in (200, 400) else {}
+            if resp.status_code == 200:
+                return True, data.get("data"), int(data.get("new_balance", 0)), None
+            err = data.get("error") or f"HTTP {resp.status_code}"
+            current_bal = int(data.get("current_balance", 0))
+            return False, data.get("data"), current_bal, err
+        except Exception as e:
+            logger.debug("Backend payment approval notice for %s: %s", payment_id, e)
+            return False, None, 0, str(e)
+
+    def reject_payment_sync(
+        self,
+        payment_id: str,
+        reason: str = ""
+    ) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
+        """Synchronously calls authoritative backend endpoint to reject payment."""
+        url = f"{self.base_url}/api/admin/payments/{payment_id}/reject"
+        headers = self._get_admin_headers()
+        payload = {"reason": reason}
+        try:
+            with httpx.Client(timeout=6.0) as client:
+                resp = client.post(url, headers=headers, json=payload)
+            data = resp.json() if resp.status_code in (200, 400) else {}
+            if resp.status_code == 200:
+                return True, data.get("data"), None
+            err = data.get("error") or f"HTTP {resp.status_code}"
+            return False, data.get("data"), err
+        except Exception as e:
+            logger.debug("Backend payment rejection notice for %s: %s", payment_id, e)
+            return False, None, str(e)
+
 
 
 autopress_api_client = AutoPressAPIClient()

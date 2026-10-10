@@ -30,6 +30,24 @@ class PaymentService:
             raise ValueError(f"Invalid package_id: {package_id}")
 
         payment_id = f"pay_{uuid.uuid4().hex[:10]}"
+
+        # Forward to authoritative backend API first
+        from services.autopress_api import autopress_api_client
+        api_ok, backend_data, err = autopress_api_client.submit_payment_sync(
+            payment_id=payment_id,
+            telegram_user_id=telegram_user_id,
+            telegram_username=telegram_username,
+            package_id=package_id,
+            credits_requested=package["credits"],
+            amount_etb=float(package["price_etb"]),
+            payment_method=payment_method,
+            screenshot_file_id=screenshot_file_id
+        )
+        if not api_ok:
+            logger.error("Backend payment submission failed for user %s: %s", telegram_user_id, err)
+            raise RuntimeError(f"Backend payment submission failed: {err or 'Connection error'}")
+
+        # Save locally in SQLite DB only after backend confirms
         payment = PaymentRepository.create_payment_request(
             payment_id=payment_id,
             telegram_user_id=telegram_user_id,
@@ -39,27 +57,6 @@ class PaymentService:
             payment_method=payment_method,
             screenshot_file_id=screenshot_file_id
         )
-
-        # Sync with backend API
-        try:
-            import httpx
-            from config import settings
-            with httpx.Client(timeout=3.0) as client:
-                client.post(
-                    f"{settings.AUTOPRESS_API_URL}/api/payments/telegram",
-                    json={
-                        "payment_id": payment_id,
-                        "telegram_user_id": telegram_user_id,
-                        "telegram_username": telegram_username or "",
-                        "package_id": package_id,
-                        "credits_requested": package["credits"],
-                        "amount_etb": float(package["price_etb"]),
-                        "payment_method": payment_method,
-                        "screenshot_file_id": screenshot_file_id
-                    }
-                )
-        except Exception as e:
-            logger.debug("Backend payment sync notice: %s", e)
 
         return payment
 
@@ -83,16 +80,50 @@ class PaymentService:
         payment_id: str,
         admin_id: int
     ) -> Tuple[bool, str, Optional[Dict[str, Any]], int]:
-        """Atomically approve payment and grant credits."""
-        return PaymentRepository.approve_payment(payment_id=payment_id, admin_id=admin_id)
+        """Atomically approve payment and grant credits via authoritative backend."""
+        from services.autopress_api import autopress_api_client
+        api_ok, backend_payment, backend_bal, api_err = autopress_api_client.approve_payment_sync(payment_id)
+        if not api_ok:
+            logger.error("Backend payment approval failed for %s: %s", payment_id, api_err)
+            return False, f"Backend approval failed: {api_err}", None, 0
+
+        # Update local SQLite DB status without granting credits locally
+        PaymentRepository.update_payment_status(
+            payment_id=payment_id,
+            status="APPROVED",
+            admin_id=admin_id
+        )
+        local_payment = PaymentRepository.get_payment(payment_id)
+        if local_payment:
+            from database.repositories.credit_repository import CreditRepository
+            CreditRepository.sync_balance_snapshot(local_payment["telegram_user_id"], backend_bal)
+
+        return True, "Payment successfully approved.", backend_payment or local_payment, backend_bal
 
     @staticmethod
     def reject_payment(
         payment_id: str,
-        admin_id: int
+        admin_id: int,
+        reason: str = ""
     ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
-        """Atomically reject payment."""
-        return PaymentRepository.reject_payment(payment_id=payment_id, admin_id=admin_id)
+        """Atomically reject payment via authoritative backend."""
+        from services.autopress_api import autopress_api_client
+        api_ok, backend_payment, api_err = autopress_api_client.reject_payment_sync(
+            payment_id=payment_id,
+            reason=reason
+        )
+        if not api_ok:
+            logger.error("Backend payment rejection failed for %s: %s", payment_id, api_err)
+            return False, f"Backend rejection failed: {api_err}", None
+
+        PaymentRepository.update_payment_status(
+            payment_id=payment_id,
+            status="REJECTED",
+            admin_id=admin_id,
+            reason=reason
+        )
+        local_payment = PaymentRepository.get_payment(payment_id)
+        return True, "Payment successfully rejected.", backend_payment or local_payment
 
 
 payment_service = PaymentService()

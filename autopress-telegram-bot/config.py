@@ -15,13 +15,17 @@ load_dotenv()
 
 def _parse_admin_ids() -> Tuple[int, ...]:
     """Parse comma-separated admin Telegram IDs from environment."""
-    raw = os.getenv("ADMIN_TELEGRAM_IDS", "7246416805")
+    raw = os.getenv("ADMIN_TELEGRAM_IDS", "").strip()
     admin_ids = []
-    for item in raw.split(","):
-        clean = item.strip()
-        if clean.isdigit():
-            admin_ids.append(int(clean))
-    return tuple(admin_ids) if admin_ids else (7246416805,)
+    if raw:
+        for item in raw.split(","):
+            clean = item.strip()
+            if clean.isdigit():
+                admin_ids.append(int(clean))
+    if not admin_ids:
+        import logging
+        logging.getLogger(__name__).warning("ADMIN_TELEGRAM_IDS is not set or empty. No admins configured.")
+    return tuple(admin_ids)
 
 
 # Credit packages available for manual top-up
@@ -68,6 +72,7 @@ class Settings:
     
     # Service Secret for internal machine-to-machine auth
     AUTOPRESS_SERVICE_SECRET: str = os.getenv("AUTOPRESS_SERVICE_SECRET", "")
+    AUTOPRESS_ADMIN_BOT_SECRET: str = os.getenv("AUTOPRESS_ADMIN_BOT_SECRET", os.getenv("AUTOPRESS_SERVICE_SECRET", ""))
     
     # Database Path / Connection (Unified AutoPress Backend Database)
     DATABASE_PATH: str = os.getenv(
@@ -100,6 +105,11 @@ class Settings:
     TELEBIRR_NAME: str = os.getenv("TELEBIRR_NAME", "Bilal Mohamed Hussein")
     TELEBIRR_PHONE: str = os.getenv("TELEBIRR_PHONE", "0978591099")
     SUPPORT_CONTACT: str = os.getenv("SUPPORT_CONTACT", "@AutoPressSupport")
+
+    def __post_init__(self):
+        if self.JWT_SECRET == "autopress-jwt-secret-production-change-me":
+            import logging
+            logging.getLogger(__name__).warning("Using default JWT_SECRET! Set JWT_SECRET in environment for production.")
 
 
 settings = Settings()
