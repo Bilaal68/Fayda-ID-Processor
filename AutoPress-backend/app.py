@@ -10,6 +10,7 @@ from routes.fayda import fayda_bp
 from routes.auth import auth_bp
 from routes.user import user_bp
 from routes.admin import admin_bp
+from routes.payment import payment_bp
 from database import init_db
 from models import UserModel, CreditLedgerModel
 from services.auth_service import hash_password
@@ -79,6 +80,7 @@ app.register_blueprint(fayda_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(payment_bp)
 
 
 # ============================================================
@@ -114,7 +116,7 @@ def handle_preflight():
         from flask import make_response
         response = make_response()
         response.headers['Access-Control-Allow-Origin']      = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Headers']     = 'Content-Type, Authorization, X-Requested-With, Accept'
+        response.headers['Access-Control-Allow-Headers']     = 'Content-Type, Authorization, X-Requested-With, Accept, X-Admin-Bot-Secret'
         response.headers['Access-Control-Allow-Methods']     = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Access-Control-Max-Age']           = '3600'

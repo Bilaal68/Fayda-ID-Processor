@@ -81,3 +81,42 @@ def get_processing_history():
         'limit': limit,
         'offset': offset
     }), 200
+
+
+@user_bp.route('/telegram/sync', methods=['POST'])
+def sync_telegram_user():
+    """
+    Sync endpoint called when a Telegram user starts or interacts with the bot.
+    Idempotently ensures the Telegram user exists and is up to date in the central backend.
+    """
+    data = request.get_json(silent=True) or {}
+    telegram_user_id = data.get('telegram_user_id')
+    username = data.get('username', '')
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    full_name = data.get('full_name', '')
+
+    if not telegram_user_id:
+        return jsonify({'status': 'error', 'error': 'telegram_user_id is required.'}), 400
+
+    try:
+        tg_id = int(telegram_user_id)
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'error': 'telegram_user_id must be a numeric integer.'}), 400
+
+    user = UserModel.get_or_create_telegram_user(
+        telegram_user_id=tg_id,
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+        full_name=full_name
+    )
+
+    current_balance = CreditLedgerModel.get_balance(user['id'])
+
+    return jsonify({
+        'status': 'success',
+        'message': 'Telegram user synchronized successfully.',
+        'user': user,
+        'current_balance': current_balance
+    }), 200

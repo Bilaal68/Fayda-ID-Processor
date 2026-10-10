@@ -20,3 +20,20 @@ AutoPress-backend/models/*.onnx
 *serviceAccount*.json
 AutoPress-backend/*.json
 !AutoPress-backend/package*.json
+
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.bak_*
+*.db-*
+AutoPress-backend/*.bak_*
+
+# Python environments and generated files
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Build output
+dist/

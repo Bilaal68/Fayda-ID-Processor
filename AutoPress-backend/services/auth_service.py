@@ -1,4 +1,5 @@
 import os
+import hmac
 import jwt
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, Tuple
@@ -45,11 +46,37 @@ ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@autopress.com").strip().lower
 
 def get_current_user_from_request() -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
-    Extracts Bearer token from Authorization header or cookie.
-    Verifies Firebase ID token first, maps to SQLite user, and auto-syncs.
+    Extracts Bearer token or dedicated admin bot service secret from request.
+    Verifies X-Admin-Bot-Secret header FIRST using hmac.compare_digest.
+    Verifies Firebase ID token for website clients.
     Falls back to legacy JWT token for seamless backward compatibility.
     Returns (user_dict, error_message).
     """
+    # 0. Dedicated Telegram Admin Bot Secret Check
+    admin_bot_secret = request.headers.get("X-Admin-Bot-Secret", "").strip()
+    if admin_bot_secret:
+        expected_secret = os.environ.get("AUTOPRESS_ADMIN_BOT_SECRET", "").strip()
+        if not expected_secret:
+            return None, "Admin bot authentication is not configured on the server."
+        if not hmac.compare_digest(admin_bot_secret, expected_secret):
+            return None, "Invalid admin bot secret."
+
+        admin_user = UserModel.get_by_email(ADMIN_EMAIL)
+        if not admin_user:
+            admin_user = UserModel.create_or_sync_firebase_user(
+                firebase_uid="admin_bot_service_uid",
+                email=ADMIN_EMAIL,
+                full_name="AutoPress Admin",
+                role="admin"
+            )
+        elif admin_user.get("role") != "admin":
+            from database import db_session
+            with db_session() as conn:
+                conn.execute("UPDATE users SET role = 'admin' WHERE id = ?", (admin_user["id"],))
+            admin_user["role"] = "admin"
+        return admin_user, None
+
+    # Normal website / user authentication flow
     auth_header = request.headers.get("Authorization", "")
     token = ""
     if auth_header.startswith("Bearer "):
@@ -61,6 +88,11 @@ def get_current_user_from_request() -> Tuple[Optional[Dict[str, Any]], Optional[
 
     if not token:
         return None, "Authentication required. Please provide a valid token."
+
+    # Prevent non-JWT tokens from reaching Firebase verify_id_token
+    # Valid Firebase ID tokens and HS256 JWTs are compact JWT strings with 3 dot-separated parts (2 dots)
+    if token.count(".") != 2:
+        return None, "Invalid token format. Expected JWT token."
 
     # 1. Primary: Verify Firebase ID Token
     fb_decoded, fb_err = verify_firebase_id_token(token)

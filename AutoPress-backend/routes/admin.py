@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, g
-from models import UserModel, CreditLedgerModel, ProcessingRecordModel, AdminStatsModel
+from models import UserModel, CreditLedgerModel, ProcessingRecordModel, AdminStatsModel, PaymentModel
 from services.auth_service import admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
@@ -34,10 +34,12 @@ def list_users():
         pass
 
     search = request.args.get('search', '').strip() or None
+    source = request.args.get('source', '').strip() or None
+    status = request.args.get('status', '').strip() or None
     limit = min(int(request.args.get('limit', 50)), 100)
     offset = max(int(request.args.get('offset', 0)), 0)
 
-    users, total = UserModel.list_users(search=search, limit=limit, offset=offset)
+    users, total, counts = UserModel.list_users(search=search, source=source, status=status, limit=limit, offset=offset)
 
     enriched = []
     for u in users:
@@ -54,6 +56,7 @@ def list_users():
         'status': 'success',
         'users': enriched,
         'total': total,
+        'counts': counts,
         'limit': limit,
         'offset': offset
     }), 200
@@ -204,7 +207,7 @@ def manage_credits():
     data = request.get_json(silent=True) or {}
     user_id = data.get('user_id')
     raw_amount = data.get('amount')
-    action = data.get('action', '').strip().lower()
+    action = data.get('action', 'add').strip().lower()
     reason = data.get('reason', '').strip()
 
     if not user_id:
@@ -221,16 +224,19 @@ def manage_credits():
         return jsonify({'status': 'error', 'error': 'Action must be "add" or "remove".'}), 400
 
     if not reason:
-        return jsonify({'status': 'error', 'error': 'A reason must be provided for credit adjustments.'}), 400
+        reason = "Manual admin credit allocation" if action == 'add' else "Admin credit adjustment"
 
     user = UserModel.get_by_id(user_id)
     if not user:
         return jsonify({'status': 'error', 'error': 'Target user not found.'}), 404
 
     admin_id = g.current_user['id']
+    admin_email = g.current_user['email']
+    previous_balance = CreditLedgerModel.get_balance(user_id)
+
     if action == 'add':
         delta = amount
-        tx_type = 'ADMIN_GRANT'
+        tx_type = 'ADMIN_MANUAL_CREDIT'
     else:
         delta = -amount
         tx_type = 'ADMIN_REMOVE'
@@ -246,13 +252,88 @@ def manage_credits():
     if not success:
         return jsonify({'status': 'error', 'error': message}), 400
 
+    # If user has a linked Telegram ID and credits were added, dispatch notification
+    if action == 'add' and user.get('telegram_user_id'):
+        from services.telegram_service import send_telegram_notification
+        user_tg_msg = (
+            "🎁 *Credits Added*\n\n"
+            f"*{amount} credits* have been added to your AutoPress account.\n\n"
+            f"💰 *Previous balance:* {previous_balance}\n"
+            f"➕ *Added:* +{amount}\n"
+            f"💳 *New balance:* {new_balance} credits\n\n"
+            f"Reason: {reason}"
+        )
+        send_telegram_notification(user['telegram_user_id'], user_tg_msg)
+
+    target_name = user['full_name'] or user['email'] or f"Telegram User {user.get('telegram_user_id')}"
     return jsonify({
         'status': 'success',
-        'message': f'Successfully updated credits for {user["email"]}.',
+        'message': f'Successfully added {amount} credits to {target_name}. New balance: {new_balance}.',
         'user_id': user_id,
         'action': action,
         'amount': amount,
-        'new_balance': new_balance
+        'previous_balance': previous_balance,
+        'new_balance': new_balance,
+        'balance_after': new_balance,
+        'transaction_type': tx_type
+    }), 200
+
+
+@admin_bp.route('/users/<int:user_id>/add-credits', methods=['POST'])
+@admin_required
+def add_credits_to_user(user_id: int):
+    """Direct alias for manual admin credit grant to a specific user."""
+    data = request.get_json(silent=True) or {}
+    raw_amount = data.get('amount')
+    reason = data.get('reason', '').strip() or "Manual admin credit"
+
+    try:
+        amount = int(raw_amount)
+        if amount <= 0:
+            raise ValueError()
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'error': 'Amount must be a positive integer.'}), 400
+
+    user = UserModel.get_by_id(user_id)
+    if not user:
+        return jsonify({'status': 'error', 'error': 'Target user not found.'}), 404
+
+    admin_id = g.current_user['id']
+    previous_balance = CreditLedgerModel.get_balance(user_id)
+
+    success, message, new_balance = CreditLedgerModel.record_transaction(
+        user_id=user_id,
+        amount=amount,
+        transaction_type='ADMIN_MANUAL_CREDIT',
+        reason=reason,
+        admin_id=admin_id
+    )
+
+    if not success:
+        return jsonify({'status': 'error', 'error': message}), 400
+
+    # Telegram user notification
+    if user.get('telegram_user_id'):
+        from services.telegram_service import send_telegram_notification
+        user_tg_msg = (
+            "🎁 *Credits Added*\n\n"
+            f"*{amount} credits* have been added to your AutoPress account.\n\n"
+            f"💰 *Previous balance:* {previous_balance}\n"
+            f"➕ *Added:* +{amount}\n"
+            f"💳 *New balance:* {new_balance} credits\n\n"
+            f"Reason: {reason}"
+        )
+        send_telegram_notification(user['telegram_user_id'], user_tg_msg)
+
+    target_name = user['full_name'] or user['email'] or f"Telegram User {user.get('telegram_user_id')}"
+    return jsonify({
+        'status': 'success',
+        'message': f'Successfully granted +{amount} credits to {target_name}.',
+        'user_id': user_id,
+        'credits_added': amount,
+        'previous_balance': previous_balance,
+        'new_balance': new_balance,
+        'balance_after': new_balance
     }), 200
 
 
@@ -289,4 +370,157 @@ def get_global_processing_history():
         'total': total,
         'limit': limit,
         'offset': offset
+    }), 200
+
+
+# ===========================================================================
+# PAYMENT TOP-UP MANAGEMENT (TELEGRAM & WEB TOP-UPS)
+# ===========================================================================
+
+@admin_bp.route('/payments', methods=['GET'])
+@admin_required
+def list_admin_payments():
+    status = request.args.get('status', '').strip() or None
+    search = request.args.get('search', '').strip() or None
+    limit = min(int(request.args.get('limit', 50)), 100)
+    offset = max(int(request.args.get('offset', 0)), 0)
+
+    payments, total, counts = PaymentModel.list_payments(
+        status=status,
+        search=search,
+        limit=limit,
+        offset=offset
+    )
+
+    return jsonify({
+        'status': 'success',
+        'payments': payments,
+        'total': total,
+        'counts': counts,
+        'limit': limit,
+        'offset': offset
+    }), 200
+
+
+@admin_bp.route('/payments/<string:payment_id>', methods=['GET'])
+@admin_required
+def get_admin_payment_detail(payment_id: str):
+    payment = PaymentModel.get_by_id(payment_id)
+    if not payment:
+        return jsonify({'status': 'error', 'error': 'Payment request not found.'}), 404
+
+    # Fetch user details and credit balance if available
+    user_balance = None
+    if payment.get('user_id'):
+        user_balance = CreditLedgerModel.get_balance(payment['user_id'])
+
+    return jsonify({
+        'status': 'success',
+        'data': payment,
+        'user_balance': user_balance
+    }), 200
+
+
+@admin_bp.route('/payments/<string:payment_id>/receipt', methods=['GET'])
+@admin_required
+def get_admin_payment_receipt(payment_id: str):
+    """
+    Secure receipt image endpoint.
+    Only accessible to authorized administrators.
+    Fetches receipt from Telegram or local storage and streams image bytes.
+    """
+    payment = PaymentModel.get_by_id(payment_id)
+    if not payment:
+        return jsonify({'status': 'error', 'error': 'Payment request not found.'}), 404
+
+    file_id = payment.get('screenshot_file_id')
+    file_url = payment.get('screenshot_url')
+
+    if not file_id and not file_url:
+        return jsonify({'status': 'error', 'error': 'No receipt image uploaded for this payment.'}), 404
+
+    from flask import Response
+    from services.telegram_service import fetch_telegram_receipt_image
+
+    if file_id:
+        img_bytes, mime_type = fetch_telegram_receipt_image(file_id)
+        if img_bytes:
+            return Response(img_bytes, mimetype=mime_type)
+
+    # Fallback to local file path if stored locally
+    if file_url and os.path.exists(file_url):
+        try:
+            with open(file_url, 'rb') as f:
+                content = f.read()
+            mime = 'image/png' if file_url.endswith('.png') else 'image/jpeg'
+            return Response(content, mimetype=mime)
+        except Exception:
+            pass
+
+    return jsonify({'status': 'error', 'error': 'Receipt image could not be loaded from storage.'}), 404
+
+
+@admin_bp.route('/payments/<string:payment_id>/approve', methods=['POST'])
+@admin_required
+def approve_admin_payment(payment_id: str):
+    """
+    Atomically approves a PENDING payment request and grants credits.
+    Guarantees strict idempotency and audit trail.
+    """
+    admin_id = g.current_user['id']
+    admin_email = g.current_user['email']
+
+    success, message, payment_data, new_balance = PaymentModel.approve_payment(
+        payment_id=payment_id,
+        admin_id=admin_id,
+        admin_email=admin_email
+    )
+
+    if not success:
+        return jsonify({
+            'status': 'error',
+            'error': message,
+            'data': payment_data,
+            'current_balance': new_balance
+        }), 400
+
+    return jsonify({
+        'status': 'success',
+        'message': message,
+        'data': payment_data,
+        'new_balance': new_balance,
+        'credits_added': payment_data['credits_requested']
+    }), 200
+
+
+@admin_bp.route('/payments/<string:payment_id>/reject', methods=['POST'])
+@admin_required
+def reject_admin_payment(payment_id: str):
+    """
+    Atomically marks a PENDING payment request as REJECTED.
+    Credits remain 0.
+    """
+    admin_id = g.current_user['id']
+    admin_email = g.current_user['email']
+    data = request.get_json(silent=True) or {}
+    reason = data.get('reason', '').strip()
+
+    success, message, payment_data = PaymentModel.reject_payment(
+        payment_id=payment_id,
+        admin_id=admin_id,
+        admin_email=admin_email,
+        reason=reason
+    )
+
+    if not success:
+        return jsonify({
+            'status': 'error',
+            'error': message,
+            'data': payment_data
+        }), 400
+
+    return jsonify({
+        'status': 'success',
+        'message': message,
+        'data': payment_data
     }), 200

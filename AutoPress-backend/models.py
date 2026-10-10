@@ -163,6 +163,87 @@ class UserModel:
             return UserModel.get_by_firebase_uid(clean_uid) or UserModel.get_by_email(normalized_email)
 
     @staticmethod
+    def get_by_telegram_id(telegram_user_id: int) -> Optional[Dict[str, Any]]:
+        if not telegram_user_id:
+            return None
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE telegram_user_id = ?", (telegram_user_id,))
+            row = cursor.fetchone()
+            if row:
+                return UserModel.to_dict(row)
+            # Fallback to synthetic email pattern
+            cursor.execute("SELECT * FROM users WHERE email = ? COLLATE NOCASE", (f"telegram_{telegram_user_id}@autopress.bot",))
+            row = cursor.fetchone()
+            return UserModel.to_dict(row) if row else None
+
+    @staticmethod
+    def get_or_create_telegram_user(
+        telegram_user_id: int,
+        username: str = "",
+        first_name: str = "",
+        last_name: str = "",
+        full_name: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Idempotently resolves or provisions a unified AutoPress user for a Telegram user ID.
+        Stores telegram_user_id, telegram_username, first_name, last_name, source='telegram'.
+        """
+        user = UserModel.get_by_telegram_id(telegram_user_id)
+        clean_username = username.strip().lstrip("@") if username else ""
+        clean_fn = first_name.strip() if first_name else ""
+        clean_ln = last_name.strip() if last_name else ""
+        name_candidate = full_name.strip() or f"{clean_fn} {clean_ln}".strip() or (f"@{clean_username}" if clean_username else f"Telegram User {telegram_user_id}")
+
+        if user:
+            # Update latest username, names, and last activity
+            with db_session() as conn:
+                conn.execute(
+                    """
+                    UPDATE users
+                    SET telegram_user_id = ?,
+                        telegram_username = COALESCE(NULLIF(?, ''), telegram_username),
+                        first_name = COALESCE(NULLIF(?, ''), first_name),
+                        last_name = COALESCE(NULLIF(?, ''), last_name),
+                        full_name = CASE WHEN full_name LIKE 'Telegram User %' OR full_name LIKE '@%' THEN ? ELSE full_name END,
+                        last_activity = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (telegram_user_id, clean_username, clean_fn, clean_ln, name_candidate, user["id"])
+                )
+            return UserModel.get_by_id(user["id"])
+
+        tg_email = f"telegram_{telegram_user_id}@autopress.bot"
+        try:
+            with db_session() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO users (
+                        email, password_hash, full_name, role, is_verified, status,
+                        telegram_user_id, telegram_username, first_name, last_name, source
+                    )
+                    VALUES (?, '', ?, 'user', 1, 'active', ?, ?, ?, ?, 'telegram')
+                    """,
+                    (tg_email, name_candidate, telegram_user_id, clean_username, clean_fn, clean_ln)
+                )
+                user_id = cursor.lastrowid
+
+            import os
+            default_credits = int(os.environ.get("DEFAULT_SIGNUP_CREDITS", 2))
+            if default_credits > 0 and user_id:
+                CreditLedgerModel.record_transaction(
+                    user_id=user_id,
+                    amount=default_credits,
+                    transaction_type="ADMIN_GRANT",
+                    reason=f"Welcome bonus ({default_credits} credits on registration)"
+                )
+            return UserModel.get_by_id(user_id)
+        except sqlite3.IntegrityError:
+            return UserModel.get_by_telegram_id(telegram_user_id) or UserModel.get_by_email(tg_email)
+
+    @staticmethod
     def update_role(user_id: int, role: str) -> bool:
         if role not in ("user", "admin"):
             return False
@@ -216,16 +297,52 @@ class UserModel:
             )
 
     @staticmethod
-    def list_users(search: Optional[str] = None, limit: int = 50, offset: int = 0) -> Tuple[List[Dict[str, Any]], int]:
+    def list_users(
+        search: Optional[str] = None,
+        source: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0
+    ) -> Tuple[List[Dict[str, Any]], int, Dict[str, int]]:
         with db_session() as conn:
             cursor = conn.cursor()
-            base_query = "FROM users"
+
+            # Breakdown counts
+            cursor.execute("""
+                SELECT
+                    COUNT(*) as total_all,
+                    COALESCE(SUM(CASE WHEN source = 'website' THEN 1 ELSE 0 END), 0) as total_website,
+                    COALESCE(SUM(CASE WHEN source = 'telegram' THEN 1 ELSE 0 END), 0) as total_telegram,
+                    COALESCE(SUM(CASE WHEN source = 'both' THEN 1 ELSE 0 END), 0) as total_both,
+                    COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) as total_active,
+                    COALESCE(SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END), 0) as total_suspended
+                FROM users
+            """)
+            c_row = cursor.fetchone()
+            counts = {
+                "all": c_row["total_all"] if c_row else 0,
+                "website": c_row["total_website"] if c_row else 0,
+                "telegram": c_row["total_telegram"] if c_row else 0,
+                "both": c_row["total_both"] if c_row else 0,
+                "active": c_row["total_active"] if c_row else 0,
+                "suspended": c_row["total_suspended"] if c_row else 0
+            }
+
+            base_query = "FROM users WHERE 1=1"
             params: List[Any] = []
 
+            if source and source.lower() in ('website', 'telegram', 'both'):
+                base_query += " AND source = ?"
+                params.append(source.lower())
+
+            if status and status.lower() in ('active', 'suspended'):
+                base_query += " AND status = ?"
+                params.append(status.lower())
+
             if search:
-                base_query += " WHERE email LIKE ? OR full_name LIKE ?"
                 like_term = f"%{search.strip()}%"
-                params.extend([like_term, like_term])
+                base_query += " AND (email LIKE ? OR full_name LIKE ? OR telegram_username LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR CAST(telegram_user_id AS TEXT) LIKE ?)"
+                params.extend([like_term, like_term, like_term, like_term, like_term, like_term])
 
             cursor.execute(f"SELECT COUNT(*) {base_query}", tuple(params))
             total_count = cursor.fetchone()[0]
@@ -235,18 +352,32 @@ class UserModel:
                 tuple(params + [limit, offset])
             )
             rows = cursor.fetchall()
-            return [UserModel.to_dict(r, include_sensitive=False) for r in rows], total_count
+            return [UserModel.to_dict(r, include_sensitive=False) for r in rows], total_count, counts
 
     @staticmethod
     def to_dict(row: sqlite3.Row, include_sensitive: bool = False) -> Dict[str, Any]:
+        row_keys = row.keys()
+        raw_email = row["email"] if "email" in row_keys else ""
+        is_synthetic = bool(raw_email and raw_email.startswith("telegram_") and raw_email.endswith("@autopress.bot"))
+        display_email = "" if is_synthetic else raw_email
+
         data = {
             "id": row["id"],
-            "email": row["email"],
+            "email": display_email,
+            "raw_email": raw_email,
             "full_name": row["full_name"],
+            "first_name": row["first_name"] if "first_name" in row_keys and row["first_name"] else "",
+            "last_name": row["last_name"] if "last_name" in row_keys and row["last_name"] else "",
             "role": row["role"],
             "status": row["status"],
             "is_verified": bool(row["is_verified"]),
-            "firebase_uid": row["firebase_uid"] if "firebase_uid" in row.keys() else None,
+            "firebase_uid": row["firebase_uid"] if "firebase_uid" in row_keys else None,
+            "telegram_user_id": row["telegram_user_id"] if "telegram_user_id" in row_keys else None,
+            "telegram_username": row["telegram_username"] if "telegram_username" in row_keys else None,
+            "source": row["source"] if "source" in row_keys and row["source"] else ("telegram" if is_synthetic else "website"),
+            "current_credits": row["current_credits"] if "current_credits" in row_keys else CreditLedgerModel.get_balance(row["id"]),
+            "total_documents": row["total_documents"] if "total_documents" in row_keys else 0,
+            "successful_documents": row["successful_documents"] if "successful_documents" in row_keys else 0,
             "created_at": str(row["created_at"]),
             "updated_at": str(row["updated_at"]),
             "last_activity": str(row["last_activity"]) if row["last_activity"] else None,
@@ -305,7 +436,8 @@ class CreditLedgerModel:
         transaction_type: str,
         reason: str,
         admin_id: Optional[int] = None,
-        processing_id: Optional[int] = None
+        processing_id: Optional[int] = None,
+        payment_id: Optional[str] = None
     ) -> Tuple[bool, str, int]:
         """
         Atomically records a credit transaction with immediate row locking.
@@ -337,10 +469,10 @@ class CreditLedgerModel:
                 """
                 INSERT INTO credit_transactions (
                     user_id, amount, transaction_type, reason,
-                    balance_after, admin_id, processing_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    balance_after, admin_id, processing_id, payment_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (user_id, amount, transaction_type, reason, new_balance, admin_id, processing_id)
+                (user_id, amount, transaction_type, reason, new_balance, admin_id, processing_id, payment_id)
             )
 
             return True, "Success", new_balance
@@ -393,6 +525,7 @@ class CreditLedgerModel:
                     "admin_email": r["admin_email"],
                     "admin_name": r["admin_name"],
                     "processing_id": r["processing_id"],
+                    "payment_id": r["payment_id"] if "payment_id" in r.keys() else None,
                     "created_at": str(r["created_at"]),
                 })
             return results, total_count
@@ -520,6 +653,296 @@ class ProcessingRecordModel:
             return results, total_count
 
 
+class PaymentModel:
+    """Authoritative repository for manual top-up payment requests."""
+
+    @staticmethod
+    def create(
+        payment_id: str,
+        user_id: Optional[int] = None,
+        telegram_user_id: Optional[int] = None,
+        telegram_username: Optional[str] = None,
+        package_id: str = "credits_10",
+        credits_requested: int = 10,
+        amount_etb: float = 100.0,
+        payment_method: str = "Bank Account (CBE)",
+        screenshot_file_id: Optional[str] = None,
+        screenshot_url: Optional[str] = None
+    ) -> Dict[str, Any]:
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO payment_receipts (
+                    id, user_id, telegram_user_id, telegram_username,
+                    package_id, credits_requested, amount_etb, payment_method,
+                    screenshot_file_id, screenshot_url, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
+                """,
+                (
+                    payment_id,
+                    user_id,
+                    telegram_user_id,
+                    telegram_username,
+                    package_id,
+                    credits_requested,
+                    amount_etb,
+                    payment_method,
+                    screenshot_file_id,
+                    screenshot_url
+                )
+            )
+        return PaymentModel.get_by_id(payment_id)
+
+    @staticmethod
+    def get_by_id(payment_id: str) -> Optional[Dict[str, Any]]:
+        with db_session() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT p.*, u.email AS user_email, u.full_name AS user_name
+                FROM payment_receipts p
+                LEFT JOIN users u ON p.user_id = u.id
+                WHERE p.id = ?
+                """,
+                (payment_id,)
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    @staticmethod
+    def list_payments(
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0
+    ) -> Tuple[List[Dict[str, Any]], int, Dict[str, int]]:
+        with db_session() as conn:
+            cursor = conn.cursor()
+
+            # Status counts
+            cursor.execute("""
+                SELECT
+                    COUNT(*) as total_all,
+                    COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) as total_pending,
+                    COALESCE(SUM(CASE WHEN status = 'APPROVED' THEN 1 ELSE 0 END), 0) as total_approved,
+                    COALESCE(SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END), 0) as total_rejected
+                FROM payment_receipts
+            """)
+            c_row = cursor.fetchone()
+            counts = {
+                "all": c_row["total_all"] if c_row else 0,
+                "pending": c_row["total_pending"] if c_row else 0,
+                "approved": c_row["total_approved"] if c_row else 0,
+                "rejected": c_row["total_rejected"] if c_row else 0
+            }
+
+            base_query = """
+                FROM payment_receipts p
+                LEFT JOIN users u ON p.user_id = u.id
+                WHERE 1=1
+            """
+            params: List[Any] = []
+
+            if status and status.upper() in ("PENDING", "APPROVED", "REJECTED"):
+                base_query += " AND p.status = ?"
+                params.append(status.upper())
+
+            if search:
+                like_term = f"%{search.strip()}%"
+                base_query += " AND (p.id LIKE ? OR p.telegram_username LIKE ? OR CAST(p.telegram_user_id AS TEXT) LIKE ? OR u.email LIKE ? OR p.payment_method LIKE ?)"
+                params.extend([like_term, like_term, like_term, like_term, like_term])
+
+            cursor.execute(f"SELECT COUNT(*) {base_query}", tuple(params))
+            total_count = cursor.fetchone()[0]
+
+            cursor.execute(
+                f"""
+                SELECT
+                    p.*,
+                    u.email AS user_email,
+                    u.full_name AS user_name
+                {base_query}
+                ORDER BY
+                    CASE WHEN p.status = 'PENDING' THEN 0 ELSE 1 END ASC,
+                    p.created_at DESC,
+                    p.rowid DESC
+                LIMIT ? OFFSET ?
+                """,
+                tuple(params + [limit, offset])
+            )
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows], total_count, counts
+
+    @staticmethod
+    def approve_payment(
+        payment_id: str,
+        admin_id: int,
+        admin_email: str
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]], int]:
+        """
+        Atomically approves a PENDING payment, grants credits, and triggers Telegram notification.
+        Guarantees strict idempotency at the database transaction level.
+        """
+        from services.telegram_service import send_telegram_notification
+
+        with db_transaction() as conn:
+            cursor = conn.cursor()
+
+            # 1. Fetch payment with row lock
+            cursor.execute("SELECT * FROM payment_receipts WHERE id = ?", (payment_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False, "Payment request not found.", None, 0
+
+            payment = dict(row)
+
+            # 2. Strict Idempotency Check
+            if payment["status"] == "APPROVED":
+                # Find current balance
+                bal = 0
+                if payment.get("user_id"):
+                    bal = CreditLedgerModel.get_balance(payment["user_id"])
+                return False, "Payment has already been APPROVED. No duplicate credits added.", payment, bal
+
+            if payment["status"] == "REJECTED":
+                return False, "Payment was already REJECTED. Cannot approve a rejected payment.", payment, 0
+
+            if payment["status"] != "PENDING":
+                return False, f"Payment is in '{payment['status']}' state.", payment, 0
+
+            # 3. Resolve target AutoPress user
+            target_user_id = payment.get("user_id")
+            if not target_user_id and payment.get("telegram_user_id"):
+                tg_user = UserModel.get_or_create_telegram_user(
+                    telegram_user_id=payment["telegram_user_id"],
+                    username=payment.get("telegram_username") or ""
+                )
+                target_user_id = tg_user["id"]
+                # Link user_id to payment
+                cursor.execute(
+                    "UPDATE payment_receipts SET user_id = ? WHERE id = ?",
+                    (target_user_id, payment_id)
+                )
+
+            if not target_user_id:
+                target_user_id = admin_id
+
+            # 4. Mark payment as APPROVED
+            cursor.execute(
+                """
+                UPDATE payment_receipts
+                SET status = 'APPROVED',
+                    reviewed_by = ?,
+                    reviewed_by_email = ?,
+                    reviewed_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (admin_id, admin_email, payment_id)
+            )
+
+            # 5. Grant Credits via Authoritative Credit Ledger in this exact atomic transaction
+            credits_to_add = int(payment["credits_requested"])
+            method = payment.get("payment_method", "Top-Up")
+            reason_text = f"Top-Up: {credits_to_add} Credits via {method} (Payment {payment_id})"
+
+            cursor.execute(
+                """
+                SELECT balance_after FROM credit_transactions
+                WHERE user_id = ?
+                ORDER BY id DESC LIMIT 1
+                """,
+                (target_user_id,)
+            )
+            last_bal_row = cursor.fetchone()
+            current_bal = last_bal_row["balance_after"] if last_bal_row else 0
+            new_balance = current_bal + credits_to_add
+
+            cursor.execute(
+                """
+                INSERT INTO credit_transactions (
+                    user_id, amount, transaction_type, reason,
+                    balance_after, admin_id, processing_id, payment_id
+                ) VALUES (?, ?, 'TOPUP_GRANT', ?, ?, ?, NULL, ?)
+                """,
+                (target_user_id, credits_to_add, reason_text, new_balance, admin_id, payment_id)
+            )
+
+        # 6. Dispatch Telegram notification (non-blocking / outside tx lock)
+        tg_id = payment.get("telegram_user_id")
+        if tg_id:
+            user_notify_text = (
+                "🎉 *Payment Approved!*\n\n"
+                f"*{credits_to_add} credits* have been added to your AutoPress account.\n"
+                f"💰 *Current Balance:* {new_balance} credits.\n\n"
+                "Thank you for using AutoPress! You can now upload and process your Fayda PDFs."
+            )
+            send_telegram_notification(tg_id, user_notify_text)
+
+        updated = PaymentModel.get_by_id(payment_id)
+        return True, f"Payment successfully approved. +{credits_to_add} credits added.", updated, new_balance
+
+    @staticmethod
+    def reject_payment(
+        payment_id: str,
+        admin_id: int,
+        admin_email: str,
+        reason: str = ""
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        """
+        Atomically rejects a PENDING payment. Adds 0 credits and triggers Telegram notification.
+        """
+        from services.telegram_service import send_telegram_notification
+
+        clean_reason = reason.strip() if reason else "Receipt verification failed."
+
+        with db_transaction() as conn:
+            cursor = conn.cursor()
+
+            # 1. Fetch payment with row lock
+            cursor.execute("SELECT * FROM payment_receipts WHERE id = ?", (payment_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False, "Payment request not found.", None
+
+            payment = dict(row)
+
+            # 2. Idempotency and State Checks
+            if payment["status"] == "APPROVED":
+                return False, "Cannot reject an already APPROVED payment.", payment
+
+            if payment["status"] == "REJECTED":
+                return False, "Payment has already been REJECTED.", payment
+
+            # 3. Mark as REJECTED
+            cursor.execute(
+                """
+                UPDATE payment_receipts
+                SET status = 'REJECTED',
+                    rejection_reason = ?,
+                    reviewed_by = ?,
+                    reviewed_by_email = ?,
+                    reviewed_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (clean_reason, admin_id, admin_email, payment_id)
+            )
+
+        # 4. Dispatch Telegram notification (outside tx lock)
+        tg_id = payment.get("telegram_user_id")
+        if tg_id:
+            user_notify_text = (
+                "❌ *Payment Verification Notice*\n\n"
+                f"Your payment request (`{payment_id}`) could not be verified.\n\n"
+                f"Reason: {clean_reason}\n\n"
+                "No credits were added. If you have questions, please contact support."
+            )
+            send_telegram_notification(tg_id, user_notify_text)
+
+        updated = PaymentModel.get_by_id(payment_id)
+        return True, "Payment request successfully rejected.", updated
+
+
 class AdminStatsModel:
     @staticmethod
     def get_overview_stats() -> Dict[str, Any]:
@@ -542,6 +965,14 @@ class AdminStatsModel:
             """)
             c_row = cursor.fetchone()
 
+            cursor.execute("""
+                SELECT
+                    COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) as pending_payments,
+                    COALESCE(SUM(CASE WHEN status = 'APPROVED' THEN amount_etb ELSE 0 END), 0) as total_revenue_etb
+                FROM payment_receipts
+            """)
+            pay_row = cursor.fetchone()
+
             p_stats = ProcessingRecordModel.get_stats(None)
 
             return {
@@ -552,6 +983,8 @@ class AdminStatsModel:
                 "total_credits_used": c_row["total_credits_used"],
                 "total_documents": p_stats["total_documents"],
                 "successful_documents": p_stats["successful_documents"],
-                "failed_documents": p_stats["failed_documents"]
+                "failed_documents": p_stats["failed_documents"],
+                "pending_payments": pay_row["pending_payments"] if pay_row else 0,
+                "total_revenue_etb": pay_row["total_revenue_etb"] if pay_row else 0
             }
 
