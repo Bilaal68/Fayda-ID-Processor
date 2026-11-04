@@ -323,7 +323,7 @@ AutoPress/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Sherin-SEF-AI/AutoPress.git
+git clone https://github.com/Bilaal68/Fayda-ID-Processor.git
 cd AutoPress
 ```
 
@@ -390,12 +390,12 @@ DEFAULT_SIGNUP_CREDITS=2
 # Inter-Service Security
 AUTOPRESS_SERVICE_SECRET=generate-a-32-byte-hex-secret
 AUTOPRESS_ADMIN_BOT_SECRET=generate-a-32-byte-hex-secret
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRstuvwxYZ
+TELEGRAM_BOT_TOKEN=123456789:***************************
 
 # Google Gemini Vision Keys (Add multiple for automated rotation)
-GEMINI_API_KEY_1=AIzaSyD-YourFirstKeyHere
-GEMINI_API_KEY_2=AIzaSyD-YourSecondKeyHere
-GEMINI_API_KEY_3=AQ...YourDeveloperKeyHere
+GEMINI_API_KEY_1=*****-YourFirstKeyHere
+GEMINI_API_KEY_2=*****-YourSecondKeyHere
+GEMINI_API_KEY_3=*****...YourDeveloperKeyHere
 
 # Background Removal Models
 REMBG_HOME=/app/models
@@ -411,18 +411,18 @@ SMTP_PASSWORD=your-app-password
 ### User Telegram Bot Configuration
 Create `autopress-telegram-bot/.env`:
 ```env
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRstuvwxYZ
+TELEGRAM_BOT_TOKEN=123456789**********************
 AUTOPRESS_API_URL=http://localhost:5000
 AUTOPRESS_SERVICE_SECRET=your-shared-service-secret
 AUTOPRESS_ADMIN_BOT_SECRET=your-shared-admin-secret
 DEFAULT_LANGUAGE=am
-ADMIN_TELEGRAM_IDS=1806429941,987654321
+ADMIN_TELEGRAM_IDS=12345678987654
 ```
 
 ### Admin Telegram Bot Configuration
 Create `autopress-admin-bot/.env`:
 ```env
-ADMIN_BOT_TOKEN=987654321:XYZabcDeFGHiJKlmnOPqrSTUVwx
+ADMIN_BOT_TOKEN=123456765431:dbhsbdhsbdhbshdsdhsbdhsbdhsb
 BACKEND_API_URL=http://localhost:5000
 AUTOPRESS_ADMIN_BOT_SECRET=your-shared-admin-secret
 SUPER_ADMIN_IDS=1806429941
@@ -532,7 +532,7 @@ The backend exposes RESTful endpoints with JSON request and response bodies. Pro
   * **Request Body:**
     ```json
     {
-      "telegram_user_id": 1806429941,
+      "telegram_user_id": 12345678765432,
       "amount": 1,
       "reason": "1-Card Fayda Imposition Generation"
     }
